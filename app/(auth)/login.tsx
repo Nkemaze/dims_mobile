@@ -12,8 +12,6 @@ export default function LoginScreen() {
   const router = useRouter();
 
   const handleLogin = () => {
-    // TODO: Replace with real auth logic when backend is ready
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     router.replace('/(app)/dashboard' as any);
   };
 
@@ -60,7 +58,7 @@ export default function LoginScreen() {
 
         <View style={styles.footer}>
           <Text style={styles.footerText}>Don&apos;t have an account? </Text>
-          <TouchableOpacity onPress={() => {}}>
+          <TouchableOpacity onPress={() => router.push('/(auth)/signup')}>
             <Text style={styles.signupText}>Sign Up</Text>
           </TouchableOpacity>
         </View>

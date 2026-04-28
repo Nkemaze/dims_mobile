@@ -10,8 +10,6 @@ export default function ProfileScreen() {
   const router = useRouter();
 
   const handleSignOut = () => {
-    // TODO: call logout() from useAuth() when auth is wired up
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     router.replace('/(auth)/login' as any);
   };
 
