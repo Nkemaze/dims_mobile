@@ -25,6 +25,7 @@ export const AppButton: React.FC<AppButtonProps> = ({
 
   return (
     <TouchableOpacity
+      accessibilityRole="button"
       onPress={onPress}
       disabled={isDisabled}
       style={[

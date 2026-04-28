@@ -1,24 +1,24 @@
 // ─── Color Palette ───────────────────────────────────────────────────────────
 export const COLORS = {
-  primary: '#4F46E5',      // Indigo
-  primaryLight: '#818CF8',
-  primaryDark: '#3730A3',
+  primary: '#80002a',      // Brand Maroon
+  primaryLight: '#951840',
+  primaryDark: '#5a001d',
 
-  secondary: '#06B6D4',    // Cyan accent
-  secondaryLight: '#67E8F9',
+  secondary: '#F17F27',    // Brand Orange
+  secondaryLight: '#F2994A',
 
-  success: '#10B981',
-  warning: '#F59E0B',
-  error: '#EF4444',
-  info: '#3B82F6',
+  success: '#2d865c',
+  warning: '#fca311',
+  error: '#dc3545',
+  info: '#0dcaf0',
 
-  background: '#0F0F1A',   // Dark background
-  surface: '#1A1A2E',      // Card background
-  border: '#2D2D44',
+  background: '#F8F9FA',   // Light background
+  surface: '#FFFFFF',      // Card background
+  border: '#E9ECEF',
 
-  textPrimary: '#F1F5F9',
-  textSecondary: '#94A3B8',
-  textMuted: '#475569',
+  textPrimary: '#212529',
+  textSecondary: '#6c757d',
+  textMuted: '#adb5bd',
 
   white: '#FFFFFF',
   black: '#000000',
@@ -30,13 +30,13 @@ export const FONTS = {
   medium: 'System',
   bold: 'System',
   sizes: {
-    xs: 11,
-    sm: 13,
-    md: 15,
+    xs: 12,
+    sm: 14,
+    md: 16,
     lg: 18,
-    xl: 22,
-    xxl: 28,
-    xxxl: 34,
+    xl: 20,
+    xxl: 24,
+    xxxl: 32,
   },
 };
 
@@ -44,17 +44,17 @@ export const FONTS = {
 export const SPACING = {
   xs: 4,
   sm: 8,
-  md: 16,
-  lg: 24,
+  md: 15,
+  lg: 20,
   xl: 32,
   xxl: 48,
 };
 
 // ─── Border Radius ───────────────────────────────────────────────────────────
 export const RADIUS = {
-  sm: 6,
-  md: 12,
-  lg: 18,
-  xl: 24,
+  sm: 5,
+  md: 10,
+  lg: 15,
+  xl: 20,
   full: 999,
 };

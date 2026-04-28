@@ -2,10 +2,8 @@ import React from 'react';
 import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { Task } from '@/types/task.types';
-import { AppBadge } from '@/components/common/AppBadge';
-import { TASK_STATUS_COLORS, TASK_STATUS_LABELS } from '@/constants/taskStatus';
-import { formatDate } from '@/utils/formatters';
-import { COLORS, FONTS, RADIUS, SPACING } from '@/constants/theme';
+import { COLORS, RADIUS, SPACING, FONTS } from '@/constants/theme';
+import { AppCard } from '../common/AppCard';
 
 interface TaskCardProps {
   task: Task;
@@ -13,58 +11,75 @@ interface TaskCardProps {
 }
 
 export const TaskCard: React.FC<TaskCardProps> = ({ task, onPress }) => {
+  const statusColor = task.status === 'COMPLETED' ? COLORS.success : COLORS.warning;
+  const statusLabel = task.status === 'COMPLETED' ? 'Submitted' : 'Pending';
+
   return (
-    <TouchableOpacity style={styles.card} onPress={() => onPress(task)} activeOpacity={0.8}>
-      <View style={styles.header}>
-        <Text style={styles.title} numberOfLines={1}>{task.title}</Text>
-        <AppBadge
-          label={TASK_STATUS_LABELS[task.status]}
-          color={TASK_STATUS_COLORS[task.status]}
-        />
-      </View>
-      <Text style={styles.description} numberOfLines={2}>{task.description}</Text>
-      <View style={styles.footer}>
-        <Ionicons name="calendar-outline" size={14} color={COLORS.textMuted} />
-        <Text style={styles.dueDate}>Due: {formatDate(task.dueDate)}</Text>
-      </View>
+    <TouchableOpacity onPress={() => onPress(task)} activeOpacity={0.8}>
+      <AppCard style={styles.card}>
+        <View style={styles.row}>
+          <View style={styles.logoContainer}>
+             <Ionicons name="business" size={24} color={COLORS.primary} />
+          </View>
+          <View style={styles.content}>
+            <Text style={styles.title} numberOfLines={1}>{task.title}</Text>
+            <Text style={styles.description} numberOfLines={2}>{task.description}</Text>
+            <View style={styles.statusRow}>
+               <View style={[styles.statusBadge, { backgroundColor: statusColor }]}>
+                  <Text style={styles.statusText}>{statusLabel}</Text>
+               </View>
+            </View>
+          </View>
+        </View>
+      </AppCard>
     </TouchableOpacity>
   );
 };
 
 const styles = StyleSheet.create({
   card: {
-    backgroundColor: COLORS.surface,
-    borderRadius: RADIUS.lg,
     padding: SPACING.md,
     marginBottom: SPACING.sm,
-    borderWidth: 1,
-    borderColor: COLORS.border,
-    gap: SPACING.sm,
   },
-  header: {
+  row: {
     flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'flex-start',
-    gap: SPACING.sm,
+  },
+  logoContainer: {
+    width: 40,
+    height: 40,
+    borderRadius: RADIUS.sm,
+    backgroundColor: COLORS.background,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginRight: SPACING.sm,
+  },
+  content: {
+    flex: 1,
   },
   title: {
-    flex: 1,
     color: COLORS.textPrimary,
     fontSize: FONTS.sizes.md,
-    fontWeight: '600',
+    fontWeight: '700',
+    marginBottom: 4,
   },
   description: {
     color: COLORS.textSecondary,
-    fontSize: FONTS.sizes.sm,
-    lineHeight: 20,
+    fontSize: 12,
+    lineHeight: 18,
+    marginBottom: SPACING.sm,
   },
-  footer: {
+  statusRow: {
     flexDirection: 'row',
-    alignItems: 'center',
-    gap: SPACING.xs,
+    justifyContent: 'flex-end',
   },
-  dueDate: {
-    color: COLORS.textMuted,
-    fontSize: FONTS.sizes.xs,
+  statusBadge: {
+    paddingHorizontal: SPACING.sm,
+    paddingVertical: 2,
+    borderRadius: RADIUS.sm,
+  },
+  statusText: {
+    color: COLORS.white,
+    fontSize: 10,
+    fontWeight: '700',
   },
 });

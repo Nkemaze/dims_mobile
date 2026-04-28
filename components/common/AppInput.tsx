@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { View, TextInput, Text, TouchableOpacity, StyleSheet, TextInputProps } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import { COLORS, RADIUS, SPACING, FONTS } from '@/constants/theme';
+import { COLORS, RADIUS, SPACING } from '@/constants/theme';
 
 interface AppInputProps extends TextInputProps {
   label?: string;
@@ -16,15 +16,22 @@ export const AppInput: React.FC<AppInputProps> = ({
   ...rest
 }) => {
   const [showPassword, setShowPassword] = useState(false);
+  const [isFocused, setIsFocused] = useState(false);
 
   return (
     <View style={styles.wrapper}>
       {label && <Text style={styles.label}>{label}</Text>}
-      <View style={[styles.inputContainer, error ? styles.inputError : null]}>
+      <View style={[
+        styles.inputContainer,
+        error ? styles.inputError : null,
+        isFocused ? styles.inputFocused : null
+      ]}>
         <TextInput
           style={styles.input}
           placeholderTextColor={COLORS.textMuted}
           secureTextEntry={isPassword && !showPassword}
+          onFocus={() => setIsFocused(true)}
+          onBlur={() => setIsFocused(false)}
           {...rest}
         />
         {isPassword && (
@@ -47,19 +54,22 @@ const styles = StyleSheet.create({
     marginBottom: SPACING.md,
   },
   label: {
-    color: COLORS.textSecondary,
-    fontSize: FONTS.sizes.sm,
+    color: COLORS.primary, // Brand Maroon for labels
+    fontSize: 14,
     marginBottom: SPACING.xs,
-    fontWeight: '500',
+    fontWeight: '700',
   },
   inputContainer: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: COLORS.surface,
+    backgroundColor: COLORS.white,
     borderRadius: RADIUS.md,
     borderWidth: 1,
     borderColor: COLORS.border,
     paddingHorizontal: SPACING.md,
+  },
+  inputFocused: {
+    borderColor: COLORS.primary,
   },
   inputError: {
     borderColor: COLORS.error,
@@ -67,15 +77,15 @@ const styles = StyleSheet.create({
   input: {
     flex: 1,
     color: COLORS.textPrimary,
-    fontSize: FONTS.sizes.md,
-    paddingVertical: SPACING.md,
+    fontSize: 14,
+    paddingVertical: 12,
   },
   eyeIcon: {
     padding: SPACING.xs,
   },
   errorText: {
     color: COLORS.error,
-    fontSize: FONTS.sizes.xs,
+    fontSize: 12,
     marginTop: SPACING.xs,
   },
 });
