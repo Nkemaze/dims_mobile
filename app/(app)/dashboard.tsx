@@ -3,8 +3,6 @@ import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Image, TextInput 
 import { SafeLayout } from '@/components/layout/SafeLayout';
 import { ScreenHeader } from '@/components/common/ScreenHeader';
 import { AppCard } from '@/components/common/AppCard';
-import { useAuth } from '@/hooks/useAuth';
-import { useTasks } from '@/hooks/useTasks';
 import { COLORS, FONTS, SPACING, RADIUS } from '@/constants/theme';
 import { Ionicons } from '@expo/vector-icons';
 
@@ -16,8 +14,6 @@ const DEPARTMENTS = [
 ];
 
 export default function DashboardScreen() {
-  const { user } = useAuth();
-  const { tasks } = useTasks();
   const [selectedDept, setSelectedDept] = useState('1');
   const [showSearch, setShowSearch] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
@@ -73,7 +69,6 @@ export default function DashboardScreen() {
       </View>
 
       <ScrollView contentContainerStyle={styles.content}>
-        {/* Placeholder for Internship Listings */}
         <Text style={styles.sectionTitle}>Available Positions</Text>
 
         {[1, 2, 3].map((item) => (

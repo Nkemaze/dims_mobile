@@ -12,7 +12,6 @@ export default function ForgotPasswordScreen() {
   const [sent, setSent] = React.useState(false);
 
   const handleSubmit = async () => {
-    // TODO: call authService.forgotPassword(email)
     setIsLoading(true);
     setTimeout(() => {
       setIsLoading(false);
@@ -35,7 +34,7 @@ export default function ForgotPasswordScreen() {
           <>
             <Text style={styles.heading}>Forgot your password?</Text>
             <Text style={styles.sub}>
-              Enter your email address and we'll send you a reset link.
+              Enter your email address and we&apos;ll send you a reset link.
             </Text>
             <AppInput
               label="Email Address"

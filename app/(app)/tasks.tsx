@@ -16,7 +16,6 @@ export default function TasksScreen() {
   const [activeFilter, setActiveFilter] = useState('All');
 
   const handlePress = (task: Task) => {
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     router.push({ pathname: '/(app)/task-detail' as any, params: { id: task.id } });
   };
 

@@ -54,7 +54,7 @@ const styles = StyleSheet.create({
     marginBottom: SPACING.md,
   },
   label: {
-    color: COLORS.primary, // Brand Maroon for labels
+    color: COLORS.primary,
     fontSize: 14,
     marginBottom: SPACING.xs,
     fontWeight: '700',

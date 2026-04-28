@@ -1,8 +1,8 @@
 import React from 'react';
-import { View, TouchableOpacity, Text, StyleSheet, Image } from 'react-native';
+import { View, TouchableOpacity, Text, StyleSheet } from 'react-native';
 import { BottomTabBarProps } from '@react-navigation/bottom-tabs';
 import { Ionicons } from '@expo/vector-icons';
-import { COLORS, FONTS, RADIUS, SPACING } from '@/constants/theme';
+import { COLORS, SPACING } from '@/constants/theme';
 
 const TAB_ICONS: Record<string, { active: any, inactive: any }> = {
   dashboard: { active: 'home', inactive: 'home-outline' },
@@ -18,7 +18,6 @@ export const CustomTabBar: React.FC<BottomTabBarProps> = ({ state, descriptors, 
       {state.routes.map((route, index) => {
         const { options } = descriptors[route.key];
 
-        // Skip routes that should be hidden
         if (options.href === null || !TAB_ICONS[route.name]) return null;
 
         const label = options.tabBarLabel ?? options.title ?? route.name;
@@ -76,7 +75,7 @@ const styles = StyleSheet.create({
     marginTop: 2,
   },
   labelActive: {
-    color: COLORS.primaryLight, // #951840
+    color: COLORS.primaryLight,
     fontWeight: '700',
   },
 });
