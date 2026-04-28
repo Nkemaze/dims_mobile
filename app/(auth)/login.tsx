@@ -1,9 +1,9 @@
 import React from 'react';
-import { View, Text, StyleSheet } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
 import { SafeLayout } from '@/components/layout/SafeLayout';
 import { AppInput } from '@/components/common/AppInput';
 import { AppButton } from '@/components/common/AppButton';
-import { COLORS, FONTS, SPACING } from '@/constants/theme';
+import { COLORS, RADIUS, SPACING } from '@/constants/theme';
 import { useRouter } from 'expo-router';
 
 export default function LoginScreen() {
@@ -19,20 +19,22 @@ export default function LoginScreen() {
 
   return (
     <SafeLayout scrollable={false} contentStyle={styles.container}>
-      {/* Logo / Branding */}
+      {/* Branding */}
       <View style={styles.brand}>
-        <Text style={styles.logo}>DIMS</Text>
-        <Text style={styles.tagline}>Intern Portal</Text>
+        <View style={styles.logoCircle}>
+          <Text style={styles.logoText}>DIMS</Text>
+        </View>
+        <Text style={styles.title}>DigiMark Internship Management System</Text>
       </View>
 
       {/* Form */}
       <View style={styles.form}>
-        <Text style={styles.heading}>Welcome back 👋</Text>
-        <Text style={styles.subheading}>Sign in to your intern account</Text>
+        <Text style={styles.heading}>Login</Text>
+        <Text style={styles.subheading}>Enter your credentials to continue</Text>
 
         <AppInput
-          label="Email Address"
-          placeholder="you@example.com"
+          label="Email"
+          placeholder="Enter your email"
           keyboardType="email-address"
           autoCapitalize="none"
           value={email}
@@ -47,13 +49,21 @@ export default function LoginScreen() {
           onChangeText={setPassword}
         />
 
-        <AppButton title="Sign In" onPress={handleLogin} />
-
-        <AppButton
-          title="Forgot Password?"
-          variant="ghost"
+        <TouchableOpacity
           onPress={() => router.push('/(auth)/forgot-password')}
-        />
+          style={styles.forgotPassword}
+        >
+          <Text style={styles.forgotPasswordText}>Forgot Password?</Text>
+        </TouchableOpacity>
+
+        <AppButton title="LOGIN" onPress={handleLogin} style={styles.loginBtn} />
+
+        <View style={styles.footer}>
+          <Text style={styles.footerText}>Don&apos;t have an account? </Text>
+          <TouchableOpacity onPress={() => {}}>
+            <Text style={styles.signupText}>Sign Up</Text>
+          </TouchableOpacity>
+        </View>
       </View>
     </SafeLayout>
   );
@@ -61,45 +71,80 @@ export default function LoginScreen() {
 
 const styles = StyleSheet.create({
   container: {
-    justifyContent: 'center',
     paddingHorizontal: SPACING.lg,
+    justifyContent: 'center',
+    flex: 1,
   },
   brand: {
     alignItems: 'center',
-    marginBottom: SPACING.xxl,
+    marginBottom: SPACING.xl,
   },
-  logo: {
-    fontSize: FONTS.sizes.xxxl,
+  logoCircle: {
+    width: 100,
+    height: 100,
+    borderRadius: 50,
+    backgroundColor: COLORS.primary,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginBottom: SPACING.md,
+  },
+  logoText: {
+    color: COLORS.white,
+    fontSize: 24,
     fontWeight: '900',
-    color: COLORS.primary,
-    letterSpacing: 4,
   },
-  tagline: {
-    color: COLORS.textSecondary,
-    fontSize: FONTS.sizes.md,
-    marginTop: SPACING.xs,
+  title: {
+    fontSize: 16,
+    fontWeight: '700',
+    color: COLORS.primary,
+    textAlign: 'center',
   },
   form: {
-    gap: SPACING.sm,
+    backgroundColor: COLORS.white,
+    padding: SPACING.lg,
+    borderRadius: RADIUS.lg,
+    shadowColor: COLORS.black,
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 10,
+    elevation: 5,
   },
   heading: {
-    color: COLORS.textPrimary,
-    fontSize: FONTS.sizes.xxl,
+    color: COLORS.primary,
+    fontSize: 22,
     fontWeight: '700',
-    marginBottom: SPACING.xs,
+    marginBottom: 4,
   },
   subheading: {
     color: COLORS.textSecondary,
-    fontSize: FONTS.sizes.md,
-    marginBottom: SPACING.md,
+    fontSize: 14,
+    marginBottom: SPACING.lg,
   },
-  errorBanner: {
-    backgroundColor: `${COLORS.error}22`,
-    color: COLORS.error,
-    padding: SPACING.md,
-    borderRadius: 8,
-    fontSize: FONTS.sizes.sm,
-    borderWidth: 1,
-    borderColor: COLORS.error,
+  forgotPassword: {
+    alignSelf: 'flex-end',
+    marginBottom: SPACING.lg,
+  },
+  forgotPasswordText: {
+    color: COLORS.primary,
+    fontSize: 12,
+    fontWeight: '600',
+  },
+  loginBtn: {
+    backgroundColor: COLORS.primary,
+    borderRadius: RADIUS.md,
+  },
+  footer: {
+    flexDirection: 'row',
+    justifyContent: 'center',
+    marginTop: SPACING.lg,
+  },
+  footerText: {
+    color: COLORS.textSecondary,
+    fontSize: 14,
+  },
+  signupText: {
+    color: COLORS.primary,
+    fontSize: 14,
+    fontWeight: '700',
   },
 });

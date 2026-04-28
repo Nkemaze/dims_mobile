@@ -1,83 +1,227 @@
-import React from 'react';
-import { View, Text, StyleSheet } from 'react-native';
+import React, { useState } from 'react';
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Image, TextInput } from 'react-native';
 import { SafeLayout } from '@/components/layout/SafeLayout';
+import { ScreenHeader } from '@/components/common/ScreenHeader';
 import { AppCard } from '@/components/common/AppCard';
-import { Avatar } from '@/components/common/Avatar';
 import { useAuth } from '@/hooks/useAuth';
 import { useTasks } from '@/hooks/useTasks';
 import { COLORS, FONTS, SPACING, RADIUS } from '@/constants/theme';
-import { getInitials } from '@/utils/formatters';
+import { Ionicons } from '@expo/vector-icons';
+
+const DEPARTMENTS = [
+  { id: '1', name: 'IT' },
+  { id: '2', name: 'Design' },
+  { id: '3', name: 'Marketing' },
+  { id: '4', name: 'Finance' },
+];
 
 export default function DashboardScreen() {
   const { user } = useAuth();
   const { tasks } = useTasks();
-
-  const completed = tasks.filter((t) => t.status === 'COMPLETED').length;
-  const pending = tasks.filter((t) => t.status === 'PENDING').length;
-  const inProgress = tasks.filter((t) => t.status === 'IN_PROGRESS').length;
+  const [selectedDept, setSelectedDept] = useState('1');
+  const [showSearch, setShowSearch] = useState(false);
+  const [searchQuery, setSearchQuery] = useState('');
 
   return (
     <SafeLayout>
-      {/* Greeting */}
-      <View style={styles.greetingRow}>
-        <View>
-          <Text style={styles.greeting}>Good morning 👋</Text>
-          <Text style={styles.name}>{user?.firstName ?? 'Intern'}</Text>
+      <ScreenHeader
+        title="Internship Listings"
+        showSearch
+        showChat
+        onSearchPress={() => setShowSearch(!showSearch)}
+      />
+
+      {showSearch && (
+        <View style={styles.searchBar}>
+          <Ionicons name="search" size={20} color={COLORS.textMuted} />
+          <TextInput
+            style={styles.searchInput}
+            placeholder="Search internships..."
+            value={searchQuery}
+            onChangeText={setSearchQuery}
+          />
         </View>
-        <Avatar
-          initials={getInitials(user?.firstName ?? 'I', user?.lastName ?? 'N')}
-          size={48}
-        />
+      )}
+
+      {/* Department Filter Bar */}
+      <View style={styles.categoryBarContainer}>
+        <ScrollView
+          horizontal
+          showsHorizontalScrollIndicator={false}
+          contentContainerStyle={styles.categoryBar}
+        >
+          {DEPARTMENTS.map((dept) => (
+            <TouchableOpacity
+              key={dept.id}
+              style={[
+                styles.categoryBtn,
+                selectedDept === dept.id ? styles.categoryBtnActive : styles.categoryBtnInactive,
+              ]}
+              onPress={() => setSelectedDept(dept.id)}
+            >
+              <Text
+                style={[
+                  styles.categoryText,
+                  selectedDept === dept.id ? styles.categoryTextActive : styles.categoryTextInactive,
+                ]}
+              >
+                {dept.name}
+              </Text>
+            </TouchableOpacity>
+          ))}
+        </ScrollView>
       </View>
 
-      {/* Stats Row */}
-      <View style={styles.statsRow}>
-        <AppCard style={styles.statCard}>
-          <Text style={[styles.statValue, { color: COLORS.primary }]}>{tasks.length}</Text>
-          <Text style={styles.statLabel}>Total Tasks</Text>
-        </AppCard>
-        <AppCard style={styles.statCard}>
-          <Text style={[styles.statValue, { color: COLORS.success }]}>{completed}</Text>
-          <Text style={styles.statLabel}>Completed</Text>
-        </AppCard>
-        <AppCard style={styles.statCard}>
-          <Text style={[styles.statValue, { color: COLORS.warning }]}>{pending}</Text>
-          <Text style={styles.statLabel}>Pending</Text>
-        </AppCard>
-      </View>
+      <ScrollView contentContainerStyle={styles.content}>
+        {/* Placeholder for Internship Listings */}
+        <Text style={styles.sectionTitle}>Available Positions</Text>
 
-      {/* Recent Tasks */}
-      <Text style={styles.sectionTitle}>Recent Tasks</Text>
-      {tasks.slice(0, 3).map((task) => (
-        <AppCard key={task.id} style={styles.taskRow}>
-          <Text style={styles.taskTitle} numberOfLines={1}>{task.title}</Text>
-          <Text style={styles.taskStatus}>{task.status}</Text>
-        </AppCard>
-      ))}
+        {[1, 2, 3].map((item) => (
+          <AppCard key={item} style={styles.jobCard}>
+            <View style={styles.jobHeader}>
+              <View style={styles.logoContainer}>
+                <Ionicons name="business" size={24} color={COLORS.primary} />
+              </View>
+              <View style={styles.jobTitleContainer}>
+                <Text style={styles.jobTitle}>Software Engineer Intern</Text>
+                <Text style={styles.companyName}>Digimark Consulting Sarl</Text>
+              </View>
+            </View>
+
+            <View style={styles.badgeRow}>
+              <View style={styles.badge}>
+                <Text style={styles.badgeText}>3 Months</Text>
+              </View>
+            </View>
+
+            <Text style={styles.jobDescription} numberOfLines={3}>
+              We are looking for a passionate software engineer intern to join our team.
+              You will work on exciting projects using the latest technologies.
+            </Text>
+
+            <Image
+              source={{ uri: 'https://via.placeholder.com/300x150' }}
+              style={styles.jobImage}
+            />
+          </AppCard>
+        ))}
+      </ScrollView>
     </SafeLayout>
   );
 }
 
 const styles = StyleSheet.create({
-  greetingRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: SPACING.lg,
+  content: {
+    padding: SPACING.md,
   },
-  greeting: { color: COLORS.textSecondary, fontSize: FONTS.sizes.md },
-  name: { color: COLORS.textPrimary, fontSize: FONTS.sizes.xl, fontWeight: '700' },
-  statsRow: { flexDirection: 'row', gap: SPACING.sm, marginBottom: SPACING.lg },
-  statCard: { flex: 1, alignItems: 'center', gap: 4 },
-  statValue: { fontSize: FONTS.sizes.xxl, fontWeight: '800' },
-  statLabel: { color: COLORS.textSecondary, fontSize: FONTS.sizes.xs },
+  searchBar: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: COLORS.white,
+    marginHorizontal: SPACING.md,
+    marginTop: SPACING.sm,
+    paddingHorizontal: SPACING.sm,
+    borderRadius: RADIUS.md,
+    borderWidth: 1,
+    borderColor: COLORS.border,
+  },
+  searchInput: {
+    flex: 1,
+    height: 40,
+    marginLeft: SPACING.xs,
+    fontSize: FONTS.sizes.sm,
+  },
+  categoryBarContainer: {
+    paddingVertical: SPACING.md,
+  },
+  categoryBar: {
+    paddingHorizontal: SPACING.md,
+    gap: SPACING.sm,
+  },
+  categoryBtn: {
+    paddingHorizontal: SPACING.md,
+    paddingVertical: SPACING.sm,
+    borderRadius: RADIUS.full,
+    borderWidth: 2,
+  },
+  categoryBtnActive: {
+    backgroundColor: COLORS.secondary,
+    borderColor: COLORS.secondary,
+  },
+  categoryBtnInactive: {
+    backgroundColor: 'transparent',
+    borderColor: COLORS.secondary,
+  },
+  categoryText: {
+    fontSize: FONTS.sizes.sm,
+    fontWeight: '600',
+  },
+  categoryTextActive: {
+    color: COLORS.white,
+  },
+  categoryTextInactive: {
+    color: COLORS.secondary,
+  },
   sectionTitle: {
-    color: COLORS.textPrimary,
     fontSize: FONTS.sizes.lg,
     fontWeight: '700',
+    color: COLORS.primary,
     marginBottom: SPACING.sm,
   },
-  taskRow: { flexDirection: 'row', justifyContent: 'space-between', marginBottom: SPACING.sm },
-  taskTitle: { color: COLORS.textPrimary, fontSize: FONTS.sizes.md, flex: 1 },
-  taskStatus: { color: COLORS.textMuted, fontSize: FONTS.sizes.sm },
+  jobCard: {
+    marginBottom: SPACING.md,
+    padding: SPACING.md,
+  },
+  jobHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: SPACING.sm,
+  },
+  logoContainer: {
+    width: 40,
+    height: 40,
+    borderRadius: RADIUS.sm,
+    backgroundColor: COLORS.background,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginRight: SPACING.sm,
+  },
+  jobTitleContainer: {
+    flex: 1,
+  },
+  jobTitle: {
+    fontSize: FONTS.sizes.md,
+    fontWeight: '700',
+    color: COLORS.textPrimary,
+  },
+  companyName: {
+    fontSize: FONTS.sizes.xs,
+    color: COLORS.textSecondary,
+  },
+  badgeRow: {
+    flexDirection: 'row',
+    marginBottom: SPACING.sm,
+  },
+  badge: {
+    backgroundColor: COLORS.primaryLight,
+    paddingHorizontal: SPACING.sm,
+    paddingVertical: 2,
+    borderRadius: RADIUS.sm,
+  },
+  badgeText: {
+    color: COLORS.white,
+    fontSize: 10,
+    fontWeight: '600',
+  },
+  jobDescription: {
+    fontSize: FONTS.sizes.sm,
+    color: COLORS.textSecondary,
+    marginBottom: SPACING.sm,
+    lineHeight: 20,
+  },
+  jobImage: {
+    width: '100%',
+    height: 150,
+    borderRadius: RADIUS.md,
+  },
 });

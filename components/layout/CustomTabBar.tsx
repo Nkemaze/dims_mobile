@@ -1,16 +1,15 @@
 import React from 'react';
-import { View, TouchableOpacity, Text, StyleSheet } from 'react-native';
+import { View, TouchableOpacity, Text, StyleSheet, Image } from 'react-native';
 import { BottomTabBarProps } from '@react-navigation/bottom-tabs';
 import { Ionicons } from '@expo/vector-icons';
 import { COLORS, FONTS, RADIUS, SPACING } from '@/constants/theme';
 
-const TAB_ICONS: Record<string, keyof typeof Ionicons.glyphMap> = {
-  dashboard: 'home',
-  tasks: 'checkmark-circle',
-  attendance: 'calendar',
-  timetable: 'time',
-  notifications: 'notifications',
-  profile: 'person',
+const TAB_ICONS: Record<string, { active: any, inactive: any }> = {
+  dashboard: { active: 'home', inactive: 'home-outline' },
+  tasks: { active: 'checkbox', inactive: 'checkbox-outline' },
+  notifications: { active: 'notifications', inactive: 'notifications-outline' },
+  tools: { active: 'build', inactive: 'build-outline' },
+  profile: { active: 'person', inactive: 'person-outline' },
 };
 
 export const CustomTabBar: React.FC<BottomTabBarProps> = ({ state, descriptors, navigation }) => {
@@ -18,9 +17,13 @@ export const CustomTabBar: React.FC<BottomTabBarProps> = ({ state, descriptors, 
     <View style={styles.tabBar}>
       {state.routes.map((route, index) => {
         const { options } = descriptors[route.key];
+
+        // Skip routes that should be hidden
+        if (options.href === null || !TAB_ICONS[route.name]) return null;
+
         const label = options.tabBarLabel ?? options.title ?? route.name;
         const isFocused = state.index === index;
-        const iconName = TAB_ICONS[route.name] ?? 'ellipse';
+        const iconInfo = TAB_ICONS[route.name];
 
         const onPress = () => {
           const event = navigation.emit({ type: 'tabPress', target: route.key, canPreventDefault: true });
@@ -38,9 +41,9 @@ export const CustomTabBar: React.FC<BottomTabBarProps> = ({ state, descriptors, 
             style={styles.tab}
           >
             <Ionicons
-              name={isFocused ? iconName : (`${iconName}-outline` as any)}
-              size={22}
-              color={isFocused ? COLORS.primary : COLORS.textMuted}
+              name={isFocused ? iconInfo.active : iconInfo.inactive}
+              size={24}
+              color={isFocused ? COLORS.primaryLight : COLORS.textSecondary}
             />
             <Text style={[styles.label, isFocused && styles.labelActive]}>
               {String(label)}
@@ -60,18 +63,20 @@ const styles = StyleSheet.create({
     borderTopColor: COLORS.border,
     paddingBottom: SPACING.md,
     paddingTop: SPACING.sm,
+    height: 65,
   },
   tab: {
     flex: 1,
     alignItems: 'center',
-    gap: 3,
+    justifyContent: 'center',
   },
   label: {
-    fontSize: FONTS.sizes.xs,
-    color: COLORS.textMuted,
+    fontSize: 10,
+    color: COLORS.textSecondary,
+    marginTop: 2,
   },
   labelActive: {
-    color: COLORS.primary,
-    fontWeight: '600',
+    color: COLORS.primaryLight, // #951840
+    fontWeight: '700',
   },
 });
