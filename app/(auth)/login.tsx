@@ -1,10 +1,11 @@
-import React from 'react';
-import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
-import { SafeLayout } from '@/components/layout/SafeLayout';
-import { AppInput } from '@/components/common/AppInput';
 import { AppButton } from '@/components/common/AppButton';
+import { AppInput } from '@/components/common/AppInput';
+import { SafeLayout } from '@/components/layout/SafeLayout';
 import { COLORS, RADIUS, SPACING } from '@/constants/theme';
+import { LinearGradient } from 'expo-linear-gradient';
 import { useRouter } from 'expo-router';
+import React from 'react';
+import { Image, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 
 export default function LoginScreen() {
   const [email, setEmail] = React.useState('');
@@ -16,62 +17,75 @@ export default function LoginScreen() {
   };
 
   return (
-    <SafeLayout scrollable={false} contentStyle={styles.container}>
-      {/* Branding */}
-      <View style={styles.brand}>
-        <View style={styles.logoCircle}>
-          <Text style={styles.logoText}>DIMS</Text>
+      <LinearGradient
+        colors={['#ffffff', '#ffe0b2', '#ffb84d']}
+        style={styles.gradient}
+      >
+    <SafeLayout scrollable={true} style={styles.safeArea} contentStyle={styles.container}>
+        {/* Branding */}
+        <View style={styles.brand}>
+          <Image
+            source={require('../../assets/images/icon.png')}
+            style={{ width: 100, height: 100, backgroundColor: 'red' }}
+          />
+          <Text style={styles.title}>DigiMark Internship Management System</Text>
         </View>
-        <Text style={styles.title}>DigiMark Internship Management System</Text>
-      </View>
 
-      {/* Form */}
-      <View style={styles.form}>
-        <Text style={styles.heading}>Login</Text>
-        <Text style={styles.subheading}>Enter your credentials to continue</Text>
+        {/* Form */}
+        <View style={styles.form}>
+          <Text style={styles.subheading}>Enter your credentials to continue</Text>
 
-        <AppInput
-          label="Email"
-          placeholder="Enter your email"
-          keyboardType="email-address"
-          autoCapitalize="none"
-          value={email}
-          onChangeText={setEmail}
-        />
+          <AppInput
+            label="Email"
+            placeholder="Enter your email"
+            keyboardType="email-address"
+            autoCapitalize="none"
+            value={email}
+            onChangeText={setEmail}
+          />
 
-        <AppInput
-          label="Password"
-          placeholder="Enter your password"
-          isPassword
-          value={password}
-          onChangeText={setPassword}
-        />
+          <AppInput
+            label="Password"
+            placeholder="Enter your password"
+            isPassword
+            value={password}
+            onChangeText={setPassword}
+          />
 
-        <TouchableOpacity
-          onPress={() => router.push('/(auth)/forgot-password')}
-          style={styles.forgotPassword}
-        >
-          <Text style={styles.forgotPasswordText}>Forgot Password?</Text>
-        </TouchableOpacity>
-
-        <AppButton title="LOGIN" onPress={handleLogin} style={styles.loginBtn} />
-
-        <View style={styles.footer}>
-          <Text style={styles.footerText}>Don&apos;t have an account? </Text>
-          <TouchableOpacity onPress={() => router.push('/(auth)/signup')}>
-            <Text style={styles.signupText}>Sign Up</Text>
+          <TouchableOpacity
+            onPress={() => router.push('/(auth)/forgot-password')}
+            style={styles.forgotPassword}
+          >
+            <Text style={styles.forgotPasswordText}>Forgot Password?</Text>
           </TouchableOpacity>
+
+          <AppButton title="LOGIN" onPress={handleLogin} style={styles.loginBtn} />
+
+          <View style={styles.footer}>
+            <Text style={styles.footerText}>Don&apos;t have an account? </Text>
+            <TouchableOpacity onPress={() => router.push('/(auth)/signup')}>
+              <Text style={styles.signupText}>Sign Up</Text>
+            </TouchableOpacity>
+          </View>
         </View>
-      </View>
     </SafeLayout>
+    </LinearGradient>
   );
 }
 
 const styles = StyleSheet.create({
+  safeArea: {
+    backgroundColor: 'transparent',
+  },
   container: {
     paddingHorizontal: SPACING.lg,
     justifyContent: 'center',
     flex: 1,
+  },
+  gradient: {
+    flex: 1,
+    width: '100%',
+    paddingVertical: SPACING.xl,
   },
   brand: {
     alignItems: 'center',
@@ -97,15 +111,16 @@ const styles = StyleSheet.create({
     color: COLORS.primary,
     textAlign: 'center',
   },
+  logoImage: {
+    width: 120,
+    height: 120,
+    marginBottom: SPACING.md,
+  },
   form: {
-    backgroundColor: COLORS.white,
     padding: SPACING.lg,
     borderRadius: RADIUS.lg,
-    shadowColor: COLORS.black,
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 10,
-    elevation: 5,
+    borderWidth: 1,
+    borderColor: COLORS.white
   },
   heading: {
     color: COLORS.primary,

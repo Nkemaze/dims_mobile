@@ -1,133 +1,116 @@
-import React from 'react';
-import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
+import React, { useState } from 'react';
+import { View, Text, StyleSheet, ScrollView } from 'react-native';
 import { SafeLayout } from '@/components/layout/SafeLayout';
 import { ScreenHeader } from '@/components/common/ScreenHeader';
-import { COLORS, SPACING, RADIUS } from '@/constants/theme';
-import { Ionicons } from '@expo/vector-icons';
+import { AppInput } from '@/components/common/AppInput';
+import { AppButton } from '@/components/common/AppButton';
+import { COLORS, SPACING } from '@/constants/theme';
 import { useRouter } from 'expo-router';
 
-export default function SignupTypeScreen() {
+export default function RegisterInternScreen() {
+  const [step, setStep] = useState(1);
   const router = useRouter();
+
+  const nextStep = () => setStep(step + 1);
+  const prevStep = () => setStep(step - 1);
+
+  const renderStepIndicator = () => (
+    <View style={styles.stepIndicator}>
+      {[1, 2, 3].map((s) => (
+        <View
+          key={s}
+          style={[
+            styles.stepDot,
+            s <= step ? styles.stepDotActive : styles.stepDotInactive
+          ]}
+        />
+      ))}
+    </View>
+  );
 
   return (
     <SafeLayout>
-      <ScreenHeader title="Sign Up" showBack />
+      <ScreenHeader title="Intern Registration" showBack />
 
-      <View style={styles.container}>
-        <Text style={styles.heading}>Choose your account type</Text>
-        <Text style={styles.subheading}>Select how you want to use the DIMS portal</Text>
+      <ScrollView contentContainerStyle={styles.container}>
+        {renderStepIndicator()}
 
-        <View style={styles.optionsContainer}>
-          <TouchableOpacity
-            style={styles.optionCard}
-            onPress={() => router.push('/(auth)/register-intern' as any)}
-          >
-            <View style={[styles.iconCircle, { backgroundColor: COLORS.primary }]}>
-              <Ionicons name="school" size={32} color={COLORS.white} />
-            </View>
-            <View style={styles.optionContent}>
-              <Text style={styles.optionTitle}>Join as an Intern</Text>
-              <Text style={styles.optionDescription}>Apply for internships and manage your tasks</Text>
-            </View>
-            <Ionicons name="chevron-forward" size={24} color={COLORS.textMuted} />
-          </TouchableOpacity>
+        {step === 1 && (
+          <View style={styles.stepContainer}>
+            <Text style={styles.stepTitle}>Personal Information</Text>
+            <AppInput label="Full Name" placeholder="Enter your full name" />
+            <AppInput label="Email" placeholder="Enter your email" keyboardType="email-address" />
+            <AppInput label="Phone Number" placeholder="Enter your phone number" keyboardType="phone-pad" />
+            <AppButton title="Next Step" onPress={nextStep} />
+          </View>
+        )}
 
-          <TouchableOpacity
-            style={styles.optionCard}
-            onPress={() => {}}
-          >
-            <View style={[styles.iconCircle, { backgroundColor: COLORS.secondary }]}>
-              <Ionicons name="briefcase" size={32} color={COLORS.white} />
+        {step === 2 && (
+          <View style={styles.stepContainer}>
+            <Text style={styles.stepTitle}>Academic Details</Text>
+            <AppInput label="University / Institute" placeholder="Enter your university" />
+            <AppInput label="Major / Course" placeholder="Enter your major" />
+            <AppInput label="Year of Study" placeholder="e.g., 3rd Year" />
+            <View style={styles.btnRow}>
+              <AppButton title="Back" variant="outline" onPress={prevStep} style={styles.halfBtn} />
+              <AppButton title="Next Step" onPress={nextStep} style={styles.halfBtn} />
             </View>
-            <View style={styles.optionContent}>
-              <Text style={styles.optionTitle}>Join as a Supervisor</Text>
-              <Text style={styles.optionDescription}>Manage interns and assign tasks</Text>
-            </View>
-            <Ionicons name="chevron-forward" size={24} color={COLORS.textMuted} />
-          </TouchableOpacity>
-        </View>
+          </View>
+        )}
 
-        <View style={styles.footer}>
-          <Text style={styles.footerText}>Already have an account? </Text>
-          <TouchableOpacity onPress={() => router.back()}>
-            <Text style={styles.loginText}>Login</Text>
-          </TouchableOpacity>
-        </View>
-      </View>
+        {step === 3 && (
+          <View style={styles.stepContainer}>
+            <Text style={styles.stepTitle}>Security</Text>
+            <AppInput label="Password" placeholder="Create a password" isPassword />
+            <AppInput label="Confirm Password" placeholder="Confirm your password" isPassword />
+            <View style={styles.btnRow}>
+              <AppButton title="Back" variant="outline" onPress={prevStep} style={styles.halfBtn} />
+              <AppButton title="Complete Registration" onPress={() => router.replace('/(auth)/login')} style={styles.halfBtn} />
+            </View>
+          </View>
+        )}
+      </ScrollView>
     </SafeLayout>
   );
 }
 
 const styles = StyleSheet.create({
   container: {
-    flex: 1,
     padding: SPACING.lg,
-    justifyContent: 'center',
   },
-  heading: {
-    fontSize: 24,
+  stepIndicator: {
+    flexDirection: 'row',
+    justifyContent: 'center',
+    gap: 8,
+    marginBottom: SPACING.xl,
+  },
+  stepDot: {
+    height: 8,
+    borderRadius: 4,
+  },
+  stepDotActive: {
+    width: 24,
+    backgroundColor: COLORS.primary,
+  },
+  stepDotInactive: {
+    width: 8,
+    backgroundColor: COLORS.border,
+  },
+  stepContainer: {
+    gap: SPACING.sm,
+  },
+  stepTitle: {
+    fontSize: 20,
     fontWeight: '700',
     color: COLORS.primary,
-    textAlign: 'center',
-    marginBottom: 8,
+    marginBottom: SPACING.md,
   },
-  subheading: {
-    fontSize: 16,
-    color: COLORS.textSecondary,
-    textAlign: 'center',
-    marginBottom: SPACING.xxl,
-  },
-  optionsContainer: {
+  btnRow: {
+    flexDirection: 'row',
     gap: SPACING.md,
+    marginTop: SPACING.md,
   },
-  optionCard: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: COLORS.white,
-    padding: SPACING.md,
-    borderRadius: RADIUS.lg,
-    borderWidth: 1,
-    borderColor: COLORS.border,
-    shadowColor: COLORS.black,
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.05,
-    shadowRadius: 10,
-    elevation: 2,
-  },
-  iconCircle: {
-    width: 60,
-    height: 60,
-    borderRadius: 30,
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginRight: SPACING.md,
-  },
-  optionContent: {
+  halfBtn: {
     flex: 1,
-  },
-  optionTitle: {
-    fontSize: 18,
-    fontWeight: '700',
-    color: COLORS.textPrimary,
-    marginBottom: 4,
-  },
-  optionDescription: {
-    fontSize: 12,
-    color: COLORS.textSecondary,
-    lineHeight: 16,
-  },
-  footer: {
-    flexDirection: 'row',
-    justifyContent: 'center',
-    marginTop: SPACING.xxl,
-  },
-  footerText: {
-    color: COLORS.textSecondary,
-    fontSize: 14,
-  },
-  loginText: {
-    color: COLORS.primary,
-    fontSize: 14,
-    fontWeight: '700',
-  },
+  }
 });
