@@ -1,5 +1,5 @@
 import React from 'react';
-import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, Image } from 'react-native';
 import { SafeLayout } from '@/components/layout/SafeLayout';
 import { AppInput } from '@/components/common/AppInput';
 import { AppButton } from '@/components/common/AppButton';
@@ -20,7 +20,11 @@ export default function LoginScreen() {
       {/* Branding */}
       <View style={styles.brand}>
         <View style={styles.logoCircle}>
-          <Text style={styles.logoText}>DIMS</Text>
+          <Image
+            source={require('../../assets/images/icon.png')}
+            style={styles.logoImage}
+            resizeMode="contain"
+          />
         </View>
         <Text style={styles.title}>DigiMark Internship Management System</Text>
       </View>
@@ -81,15 +85,15 @@ const styles = StyleSheet.create({
     width: 100,
     height: 100,
     borderRadius: 50,
-    backgroundColor: COLORS.primary,
+    backgroundColor: COLORS.white,
     justifyContent: 'center',
     alignItems: 'center',
     marginBottom: SPACING.md,
+    overflow: 'hidden',
   },
-  logoText: {
-    color: COLORS.white,
-    fontSize: 24,
-    fontWeight: '900',
+  logoImage: {
+    width: '100%',
+    height: '100%',
   },
   title: {
     fontSize: 16,
