@@ -36,7 +36,7 @@ export default function AttendanceScreen() {
 
   return (
     <SafeLayout>
-      <ScreenHeader title="My Attendance" showBack />
+      <ScreenHeader title="My Attendance" />
 
       <View style={styles.content}>
         <View style={styles.statsRow}>

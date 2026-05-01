@@ -1,22 +1,145 @@
 import React, { useState } from 'react';
-import { View, Text, StyleSheet, ScrollView } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, Platform, TouchableOpacity } from 'react-native';
+import DateTimePicker from '@react-native-community/datetimepicker';
 import { SafeLayout } from '@/components/layout/SafeLayout';
 import { ScreenHeader } from '@/components/common/ScreenHeader';
+import { LinearGradient } from 'expo-linear-gradient';
 import { AppInput } from '@/components/common/AppInput';
+import { AppSelect } from '@/components/common/AppSelect';
 import { AppButton } from '@/components/common/AppButton';
-import { COLORS, SPACING } from '@/constants/theme';
+import { COLORS,RADIUS, SPACING } from '@/constants/theme';
 import { useRouter } from 'expo-router';
 
 export default function RegisterInternScreen() {
   const [step, setStep] = useState(1);
+  const [dateOfBirth, setDateOfBirth] = useState<Date | null>(null);
+  const [showDatePicker, setShowDatePicker] = useState(false);
+  const [department, setDepartment] = useState('');
+  const [level, setLevel] = useState('');
+  const [region, setRegion] = useState('');
+  const [town, setTown] = useState('');
   const router = useRouter();
+
+  const DUMMY_DEPARTMENTS = [
+    { label: 'Computer Science', value: 'CS' },
+    { label: 'Software Engineering', value: 'SE' },
+    { label: 'Information Technology', value: 'IT' },
+    { label: 'Data Science', value: 'DS' },
+    { label: 'Cyber Security', value: 'CYBER' },
+    { label: 'Business Administration', value: 'BA' },
+    { label: 'Marketing', value: 'MKT' },
+    { label: 'Accounting', value: 'ACC' },
+  ];
+
+  const DUMMY_LEVELS = [
+    { label: 'Level 1', value: '1' },
+    { label: 'Level 2', value: '2' },
+    { label: 'Level 3', value: '3' },
+    { label: 'Level 4', value: '4' },
+    { label: 'Other', value: '5' },
+  ];
+
+  const regionData: Record<string, any> = {
+    "adamawa": {
+        towns: {
+            "Ngaoundéré": ["Bamyanga", "Dang", "Bini", "Tongo Gandima"],
+            "Meiganga": ["Meiganga Centre", "Gada-Mabanga", "Djohong"],
+            "Tibati": ["Tibati Centre", "Ngaoundal", "Banyo"]
+        }
+    },
+    "center": {
+        towns: {
+            "Yaoundé": ["Mfoundi", "Ekounou", "Nkolbisson", "Biyem-Assi", "Mvog-Ada", "Essos"],
+            "Mbalmayo": ["Akom", "Nkolbisson", "Mbalmayo Centre"],
+            "Obala": ["Obala Centre", "Nkolnda", "Nkometou"]
+        }
+    },
+    "east": {
+        towns: {
+            "Bertoua": ["Bertoua Central", "Mokolo", "Ngaikada"],
+            "Abong-Mbang": ["Nkolmetet", "Mbiame", "Nlong"],
+            "Batouri": ["Batouri Centre", "Kentzou", "Kette"]
+        }
+    },
+    "far_north": {
+        towns: {
+            "Maroua": ["Domayo", "Pitoaré", "Doualaré", "Salak"],
+            "Kousséri": ["Kousséri Centre", "Madina", "Goulfey"],
+            "Mora": ["Mora Centre", "Kolofata", "Tokombéré"]
+        }
+    },
+    "littoral": {
+        towns: {
+            "Douala": ["Akwa", "Bonaberi", "Deido", "Logbaba", "New Bell"],
+            "Nkongsamba": ["Nkongsamba 1", "Nkongsamba 2", "Nkongsamba 3"],
+            "Manjo": ["Manjo Centre", "Mbanga", "Loum"]
+        }
+    },
+    "north": {
+        towns: {
+            "Garoua": ["Plateau", "Poumpoumré", "Laindé", "Bocklé"],
+            "Guider": ["Guider Centre", "Figuil", "Mayo Oulo"],
+            "Pitoa": ["Pitoa Centre", "Demsa", "Beka"]
+        }
+    },
+    "northwest": {
+        towns: {
+            "Bamenda": ["Mokolo", "Nkwen", "Nkwen Central", "Mankon", "Mile 2"],
+            "Kumbo": ["Kumbo Central", "Mbve", "Tobin"],
+            "Ndop": ["Bamunka", "Bambalang", "Bamali"]
+        }
+    },
+    "south": {
+        towns: {
+            "Ebolowa": ["Ebolowa I", "Ebolowa II", "Nko'ovos"],
+            "Kribi": ["Kribi I", "Kribi II", "Grand Batanga"],
+            "Sangmélima": ["Sangmélima Centre", "Nkolandom", "Oveng"]
+        }
+    },
+    "southwest": {
+        towns: {
+            "Buea": ["Molyko", "Muea", "Great Soppo", "Buea Town"],
+            "Limbe": ["Bota", "Mile 1", "Mile 2", "Limbe 2"],
+            "Kumba": ["Kumba Town", "Fiango", "Kosala"]
+        }
+    },
+    "west": {
+        towns: {
+            "Bafoussam": ["Manga", "Tamdja", "Banego", "Djeleng"],
+            "Dschang": ["Dschang Centre", "Fongo-Tongo", "Fokoué"],
+            "Mbouda": ["Mbouda Centre", "Babadjou", "Batcham"]
+        }
+    }
+  };
+
+  const regionOptions = Object.keys(regionData).map(key => ({
+    label: key.split('_').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' '),
+    value: key
+  }));
+
+  const townOptions = (region && regionData[region])
+    ? Object.keys(regionData[region].towns).map(townName => ({
+        label: townName,
+        value: townName
+      }))
+    : [];
+
+  const handleRegionSelect = (val: string) => {
+    setRegion(val);
+    setTown('');
+  };
+
+  const onChangeDate = (event: any, selectedDate?: Date) => {
+    setShowDatePicker(Platform.OS === 'ios');
+    if (selectedDate) setDateOfBirth(selectedDate);
+  };
 
   const nextStep = () => setStep(step + 1);
   const prevStep = () => setStep(step - 1);
 
   const renderStepIndicator = () => (
     <View style={styles.stepIndicator}>
-      {[1, 2, 3].map((s) => (
+      {[1, 2, 3, 4, 5].map((s) => (
         <View
           key={s}
           style={[
@@ -29,60 +152,143 @@ export default function RegisterInternScreen() {
   );
 
   return (
-    <SafeLayout>
-      <ScreenHeader title="Intern Registration" showBack />
+    <LinearGradient
+      colors={['#ffffff', '#ffeacaff', '#ffe6bfff']}
+      style={styles.gradient}
+    >
+      <SafeLayout scrollable={true} style={styles.safeArea} contentStyle={styles.container}>
+        <ScreenHeader title="Register as an Intern" showBack/>
 
-      <ScrollView contentContainerStyle={styles.container}>
-        {renderStepIndicator()}
+        <ScrollView contentContainerStyle={styles.container}>
+          {renderStepIndicator()}
 
-        {step === 1 && (
-          <View style={styles.stepContainer}>
-            <Text style={styles.stepTitle}>Personal Information</Text>
-            <AppInput label="Full Name" placeholder="Enter your full name" />
-            <AppInput label="Email" placeholder="Enter your email" keyboardType="email-address" />
-            <AppInput label="Phone Number" placeholder="Enter your phone number" keyboardType="phone-pad" />
-            <AppButton title="Next Step" onPress={nextStep} />
-          </View>
-        )}
-
-        {step === 2 && (
-          <View style={styles.stepContainer}>
-            <Text style={styles.stepTitle}>Academic Details</Text>
-            <AppInput label="University / Institute" placeholder="Enter your university" />
-            <AppInput label="Major / Course" placeholder="Enter your major" />
-            <AppInput label="Year of Study" placeholder="e.g., 3rd Year" />
-            <View style={styles.btnRow}>
-              <AppButton title="Back" variant="outline" onPress={prevStep} style={styles.halfBtn} />
-              <AppButton title="Next Step" onPress={nextStep} style={styles.halfBtn} />
+          {step === 1 && (
+            <View style={styles.stepContainer}>
+              <Text style={styles.stepTitle}>Step 1: Present yourself</Text>
+              <AppInput label="Full Name" placeholder="Enter your full name" />
+              <TouchableOpacity onPress={() => setShowDatePicker(true)} activeOpacity={0.8}>
+                <View pointerEvents="none">
+                  <AppInput 
+                    label="Date of Birth" 
+                    placeholder="DD/MM/YYYY" 
+                    value={dateOfBirth ? dateOfBirth.toLocaleDateString() : ''}
+                    editable={false}
+                  />
+                </View>
+              </TouchableOpacity>
+              {showDatePicker && (
+                <DateTimePicker
+                  value={dateOfBirth || new Date()}
+                  mode="date"
+                  display={Platform.OS === 'ios' ? 'spinner' : 'default'}
+                  onChange={onChangeDate}
+                  maximumDate={new Date()}
+                />
+              )}
+              <AppButton title="Next Step" onPress={nextStep} />
             </View>
-          </View>
-        )}
+          )}
 
-        {step === 3 && (
-          <View style={styles.stepContainer}>
-            <Text style={styles.stepTitle}>Security</Text>
-            <AppInput label="Password" placeholder="Create a password" isPassword />
-            <AppInput label="Confirm Password" placeholder="Confirm your password" isPassword />
-            <View style={styles.btnRow}>
-              <AppButton title="Back" variant="outline" onPress={prevStep} style={styles.halfBtn} />
-              <AppButton title="Complete Registration" onPress={() => router.replace('/(auth)/login')} style={styles.halfBtn} />
+          {step === 2 && (
+            <View style={styles.stepContainer}>
+              <Text style={styles.stepTitle}>Step 2: Academic Details</Text>
+              <AppInput label="University / Institute" placeholder="Enter your university" />
+              <AppSelect 
+                label="Department/Specialty" 
+                placeholder="Select your major" 
+                options={DUMMY_DEPARTMENTS} 
+                value={department} 
+                onSelect={setDepartment} 
+                searchable 
+              />
+              <AppSelect 
+                label="Level" 
+                placeholder="Select your level" 
+                options={DUMMY_LEVELS} 
+                value={level} 
+                onSelect={setLevel} 
+              />
+              <View style={styles.btnRow}>
+                <AppButton title="Back" variant="outline" onPress={prevStep} style={styles.halfBtn} />
+                <AppButton title="Next Step" onPress={nextStep} style={styles.halfBtn} />
+              </View>
             </View>
-          </View>
-        )}
-      </ScrollView>
-    </SafeLayout>
+          )}
+
+          {step === 3 && (
+            <View style={styles.stepContainer}>
+              <Text style={styles.stepTitle}>Step 3: Where do you live</Text>
+              <AppSelect 
+                label="Region" 
+                placeholder="Select your region" 
+                options={regionOptions} 
+                value={region} 
+                onSelect={handleRegionSelect} 
+                searchable 
+              />
+              <AppSelect 
+                label="Town" 
+                placeholder="Select your town" 
+                options={townOptions} 
+                value={town} 
+                onSelect={setTown} 
+                searchable 
+              />
+              <AppInput label="Quater" placeholder="Enter your Quater"/>
+              <View style={styles.btnRow}>
+                <AppButton title="Back" variant="outline" onPress={prevStep} style={styles.halfBtn} />
+                <AppButton title="Next Step" onPress={nextStep} style={styles.halfBtn} />
+              </View>
+            </View>
+          )}
+
+          {step === 4 && (
+            <View style={styles.stepContainer}>
+              <Text style={styles.stepTitle}>Step 4: Live your contact</Text>
+              <AppInput label="Email" placeholder="Enter your email" keyboardType="email-address" />
+              <AppInput label="Phone Number" placeholder="Enter your phone number" keyboardType="phone-pad" />
+              <View style={styles.btnRow}>
+                <AppButton title="Back" variant="outline" onPress={prevStep} style={styles.halfBtn} />
+                <AppButton title="Next Step" onPress={nextStep} style={styles.halfBtn} />
+              </View>
+            </View>
+          )}
+
+          {step === 5 && (
+            <View style={styles.stepContainer}>
+              <Text style={styles.stepTitle}>Step 5: Create Password</Text>
+              <AppInput label="Password" placeholder="Create a password" isPassword />
+              <AppInput label="Confirm Password" placeholder="Confirm your password" isPassword />
+              <View style={styles.btnRow}>
+                <AppButton title="Back" variant="outline" onPress={prevStep} style={styles.halfBtn} />
+                <AppButton title="Submit" onPress={() => router.replace('/(auth)/login')} style={styles.halfBtn} />
+              </View>
+            </View>
+          )}
+        </ScrollView>
+      </SafeLayout>
+    </LinearGradient>
   );
 }
 
 const styles = StyleSheet.create({
   container: {
-    padding: SPACING.lg,
+    justifyContent: 'center'
+  },
+  safeArea: {
+    backgroundColor: 'transparent',
   },
   stepIndicator: {
+    paddingTop: SPACING.xl,
     flexDirection: 'row',
     justifyContent: 'center',
     gap: 8,
     marginBottom: SPACING.xl,
+  },
+  gradient: {
+    flex: 1,
+    width: '100%',
+    paddingVertical: SPACING.xl,
   },
   stepDot: {
     height: 8,
@@ -97,7 +303,13 @@ const styles = StyleSheet.create({
     backgroundColor: COLORS.border,
   },
   stepContainer: {
+    marginTop: SPACING.xl,
     gap: SPACING.sm,
+    backgroundColor: 'rgba(255, 255, 255, 0.4)',
+    padding: SPACING.lg,
+    borderRadius: RADIUS.lg,
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.8)',
   },
   stepTitle: {
     fontSize: 20,

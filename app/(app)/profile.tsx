@@ -24,7 +24,7 @@ export default function ProfileScreen() {
 
   return (
     <SafeLayout>
-      <ScreenHeader title="Profile" showBack />
+      <ScreenHeader title="Profile" />
 
       <View style={styles.profileHeader}>
         <View style={styles.avatarContainer}>

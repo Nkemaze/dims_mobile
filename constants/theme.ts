@@ -1,6 +1,7 @@
 // ─── Color Palette ───────────────────────────────────────────────────────────
 export const COLORS = {
   primary: '#80002a',      // Brand Maroon
+  primary2: '#a7033a66',      // Brand Maroon
   primaryLight: '#951840',
   primaryDark: '#5a001d',
 

@@ -25,7 +25,7 @@ export default function TimetableScreen() {
 
   return (
     <SafeLayout>
-      <ScreenHeader title="Timetable" showBack />
+      <ScreenHeader title="Timetable" />
 
       <View style={styles.weekNavigator}>
         <TouchableOpacity onPress={() => setCurrentWeekStart(addDays(currentWeekStart, -7))}>

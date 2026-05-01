@@ -78,7 +78,7 @@ const styles = StyleSheet.create({
     flex: 1,
     color: COLORS.textPrimary,
     fontSize: 14,
-    paddingVertical: 12,
+    paddingVertical: 12
   },
   eyeIcon: {
     padding: SPACING.xs,

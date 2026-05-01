@@ -6,11 +6,13 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { useRouter } from 'expo-router';
 import React from 'react';
 import { Image, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+const logo = require('../../assets/images/dims.png')
 
 export default function LoginScreen() {
   const [email, setEmail] = React.useState('');
   const [password, setPassword] = React.useState('');
   const router = useRouter();
+
 
   const handleLogin = () => {
     router.replace('/(app)/dashboard' as any);
@@ -18,15 +20,15 @@ export default function LoginScreen() {
 
   return (
       <LinearGradient
-        colors={['#ffffff', '#ffe0b2', '#ffb84d']}
+        colors={['#ffffff', '#ffeacaff', '#ffe6bfff']}
         style={styles.gradient}
       >
     <SafeLayout scrollable={true} style={styles.safeArea} contentStyle={styles.container}>
         {/* Branding */}
         <View style={styles.brand}>
           <Image
-            source={require('../../assets/images/icon.png')}
-            style={{ width: 100, height: 100, backgroundColor: 'red' }}
+            source={logo}
+            style={{ width: 150, height: 150}}
           />
           <Text style={styles.title}>DigiMark Internship Management System</Text>
         </View>
@@ -117,10 +119,12 @@ const styles = StyleSheet.create({
     marginBottom: SPACING.md,
   },
   form: {
+    backgroundColor: 'rgba(255, 255, 255, 0.4)',
     padding: SPACING.lg,
     borderRadius: RADIUS.lg,
     borderWidth: 1,
-    borderColor: COLORS.white
+    borderColor: 'rgba(255, 255, 255, 0.8)',
+
   },
   heading: {
     color: COLORS.primary,
@@ -129,8 +133,8 @@ const styles = StyleSheet.create({
     marginBottom: 4,
   },
   subheading: {
-    color: COLORS.textSecondary,
-    fontSize: 14,
+    color: COLORS.primary,
+    fontSize: 16,
     marginBottom: SPACING.lg,
   },
   forgotPassword: {
