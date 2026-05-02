@@ -15,6 +15,9 @@ interface AuthStore {
   logout: () => Promise<void>;
   loadSession: () => Promise<void>;
   clearError: () => void;
+  forgotPassword: (email: string) => Promise<{ success: boolean; message: string }>;
+  resetPassword: (token: string, password: string) => Promise<{ success: boolean; message: string }>;
+  verifyEmail: (code: string) => Promise<{ success: boolean; message: string }>;
 }
 
 export const useAuthStore = create<AuthStore>((set) => ({
@@ -50,7 +53,6 @@ export const useAuthStore = create<AuthStore>((set) => ({
       const errorMessage = err.response?.data?.message || err.message || 'Login failed';
       set({ isLoading: false, error: errorMessage });
 
-      // Handle the case where the API returns 400 but includes isVerified: false
       if (err.response?.data?.isVerified === false) {
         set({ isVerified: false });
         return { success: false, isVerified: false, message: errorMessage };
@@ -80,4 +82,48 @@ export const useAuthStore = create<AuthStore>((set) => ({
   },
 
   clearError: () => set({ error: null }),
+
+  forgotPassword: async (email: string) => {
+    set({ isLoading: true, error: null });
+    try {
+      await authService.forgotPassword(email);
+      set({ isLoading: false });
+      return { success: true, message: 'Password reset code sent to your email.' };
+    } catch (err: any) {
+      const errorMessage = err.response?.data?.message || err.message || 'Failed to send reset code';
+      set({ isLoading: false, error: errorMessage });
+      return { success: false, message: errorMessage };
+    }
+  },
+
+  resetPassword: async (token: string, password: string) => {
+    set({ isLoading: true, error: null });
+    try {
+      await authService.resetPassword(token, password);
+      set({ isLoading: false });
+      return { success: true, message: 'Password reset successful.' };
+    } catch (err: any) {
+      const errorMessage = err.response?.data?.message || err.message || 'Failed to reset password';
+      set({ isLoading: false, error: errorMessage });
+      return { success: false, message: errorMessage };
+    }
+  },
+
+  verifyEmail: async (code: string) => {
+    set({ isLoading: true, error: null });
+    try {
+      const response = await authService.verifyEmail(code);
+      if (response.success) {
+        set({ isLoading: false, isVerified: true });
+        return { success: true, message: response.message || 'Email verified successfully.' };
+      } else {
+        set({ isLoading: false, error: response.message || 'Verification failed' });
+        return { success: false, message: response.message };
+      }
+    } catch (err: any) {
+      const errorMessage = err.response?.data?.message || err.message || 'Verification failed';
+      set({ isLoading: false, error: errorMessage });
+      return { success: false, message: errorMessage };
+    }
+  },
 }));
