@@ -1,30 +1,41 @@
 import React from 'react';
-import { View, Text, StyleSheet, Modal } from 'react-native';
+import { View, Text, StyleSheet, Modal, Alert } from 'react-native';
 import { SafeLayout } from '@/components/layout/SafeLayout';
 import { AppInput } from '@/components/common/AppInput';
 import { AppButton } from '@/components/common/AppButton';
 import { ScreenHeader } from '@/components/common/ScreenHeader';
 import { COLORS, FONTS, SPACING, RADIUS } from '@/constants/theme';
+import { useAuthStore } from '@/store/authStore';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useRouter } from 'expo-router';
 
 export default function ForgotPasswordScreen() {
   const [email, setEmail] = React.useState('');
-  const [isLoading, setIsLoading] = React.useState(false);
   const [sent, setSent] = React.useState(false);
   const router = useRouter();
 
+  const { forgotPassword, isLoading, error, clearError } = useAuthStore();
+
   const handleSubmit = async () => {
-    setIsLoading(true);
-    setTimeout(() => {
-      setIsLoading(false);
+    if (!email) {
+      Alert.alert('Error', 'Please enter your email address');
+      return;
+    }
+
+    const result = await forgotPassword(email);
+    if (result.success) {
       setSent(true);
-    }, 1500);
+    } else {
+      Alert.alert('Error', result.message);
+    }
   };
 
   const handleModalOk = () => {
     setSent(false);
-    router.push({ pathname: '/(auth)/verify-code' as any, params: { email } });
+    router.push({
+      pathname: '/(auth)/verify-code',
+      params: { email, type: 'reset' }
+    });
   };
 
   return (
@@ -39,13 +50,23 @@ export default function ForgotPasswordScreen() {
           <Text style={styles.sub}>
             Enter your email address and we&apos;ll send you a 6-digit reset code.
           </Text>
+
+          {error && (
+            <View style={styles.errorContainer}>
+              <Text style={styles.errorText}>{error}</Text>
+            </View>
+          )}
+
           <AppInput
             label="Email Address"
             placeholder="you@example.com"
             keyboardType="email-address"
             autoCapitalize="none"
             value={email}
-            onChangeText={setEmail}
+            onChangeText={(text) => {
+              setEmail(text);
+              if (error) clearError();
+            }}
           />
           <AppButton title="Send Reset Code" onPress={handleSubmit} isLoading={isLoading} />
         </View>
@@ -96,6 +117,19 @@ const styles = StyleSheet.create({
     flex: 1,
     width: '100%',
     paddingVertical: SPACING.xl,
+  },
+  errorContainer: {
+    backgroundColor: 'rgba(220, 53, 69, 0.1)',
+    padding: SPACING.sm,
+    borderRadius: RADIUS.sm,
+    marginBottom: SPACING.md,
+    borderWidth: 1,
+    borderColor: COLORS.error,
+  },
+  errorText: {
+    color: COLORS.error,
+    fontSize: 14,
+    textAlign: 'center',
   },
   modalOverlay: {
     flex: 1,
