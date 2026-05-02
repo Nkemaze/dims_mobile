@@ -8,8 +8,10 @@ import { useTimetable } from '@/hooks/useTimetable';
 import { COLORS, RADIUS, SPACING } from '@/constants/theme';
 import { Ionicons } from '@expo/vector-icons';
 import { format, startOfWeek, addDays, isSameDay } from 'date-fns';
+import { useRouter } from 'expo-router';
 
 export default function TimetableScreen() {
+  const router = useRouter();
   const { entries, isLoading } = useTimetable();
   const [currentWeekStart, setCurrentWeekStart] = useState(startOfWeek(new Date()));
   const [selectedDate, setSelectedDate] = useState(new Date());
@@ -25,7 +27,7 @@ export default function TimetableScreen() {
 
   return (
     <SafeLayout>
-      <ScreenHeader title="Timetable" />
+      <ScreenHeader title="Timetable" showBack onBackPress={() => router.push('/(app)/profile' as any)} />
 
       <View style={styles.weekNavigator}>
         <TouchableOpacity onPress={() => setCurrentWeekStart(addDays(currentWeekStart, -7))}>

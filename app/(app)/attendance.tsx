@@ -8,8 +8,10 @@ import { useAttendance } from '@/hooks/useAttendance';
 import { COLORS, RADIUS, SPACING } from '@/constants/theme';
 import { Ionicons } from '@expo/vector-icons';
 import { format, startOfMonth, endOfMonth, eachDayOfInterval, isSameDay, addMonths, subMonths } from 'date-fns';
+import { useRouter } from 'expo-router';
 
 export default function AttendanceScreen() {
+  const router = useRouter();
   const { records, isLoading } = useAttendance();
   const [currentMonth, setCurrentMonth] = useState(new Date());
 
@@ -36,19 +38,19 @@ export default function AttendanceScreen() {
 
   return (
     <SafeLayout>
-      <ScreenHeader title="My Attendance" />
+      <ScreenHeader title="My Attendance" showBack onBackPress={() => router.push('/(app)/profile' as any)} />
 
       <View style={styles.content}>
         <View style={styles.statsRow}>
-          <AppCard style={[styles.statCard, { borderBottomColor: COLORS.success, borderBottomWidth: 4 }]}>
+          <AppCard style={[styles.statCard, { borderBottomColor: COLORS.success, borderBottomWidth: 4 }] as any}>
             <Text style={[styles.statValue, { color: COLORS.success }]}>{stats.present}</Text>
             <Text style={styles.statLabel}>Total Present</Text>
           </AppCard>
-          <AppCard style={[styles.statCard, { borderBottomColor: COLORS.primary, borderBottomWidth: 4 }]}>
+          <AppCard style={[styles.statCard, { borderBottomColor: COLORS.primary, borderBottomWidth: 4 }] as any}>
             <Text style={[styles.statValue, { color: COLORS.primary }]}>{stats.absent}</Text>
             <Text style={styles.statLabel}>Absent</Text>
           </AppCard>
-          <AppCard style={[styles.statCard, { borderBottomColor: COLORS.warning, borderBottomWidth: 4 }]}>
+          <AppCard style={[styles.statCard, { borderBottomColor: COLORS.warning, borderBottomWidth: 4 }] as any}>
             <Text style={[styles.statValue, { color: COLORS.warning }]}>{stats.other}</Text>
             <Text style={styles.statLabel}>Other</Text>
           </AppCard>

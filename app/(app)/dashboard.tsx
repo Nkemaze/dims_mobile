@@ -1,105 +1,101 @@
-import React, { useState } from 'react';
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Image, TextInput } from 'react-native';
+import React from 'react';
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity } from 'react-native';
 import { SafeLayout } from '@/components/layout/SafeLayout';
 import { ScreenHeader } from '@/components/common/ScreenHeader';
 import { AppCard } from '@/components/common/AppCard';
 import { COLORS, FONTS, SPACING, RADIUS } from '@/constants/theme';
 import { Ionicons } from '@expo/vector-icons';
-
-const DEPARTMENTS = [
-  { id: '1', name: 'IT' },
-  { id: '2', name: 'Design' },
-  { id: '3', name: 'Marketing' },
-  { id: '4', name: 'Finance' },
-];
+import { useRouter } from 'expo-router';
 
 export default function DashboardScreen() {
-  const [selectedDept, setSelectedDept] = useState('1');
-  const [showSearch, setShowSearch] = useState(false);
-  const [searchQuery, setSearchQuery] = useState('');
+  const router = useRouter();
 
   return (
     <SafeLayout>
       <ScreenHeader
-        title="Internship Listings"
-        showSearch
-        showChat
-        onSearchPress={() => setShowSearch(!showSearch)}
+        title="Dashboard"
+        showProfile
+        showBell
+        onProfilePress={() => router.push('/(app)/profile')}
+        onBellPress={() => router.push('/(app)/notifications')}
       />
 
-      {showSearch && (
-        <View style={styles.searchBar}>
-          <Ionicons name="search" size={20} color={COLORS.textMuted} />
-          <TextInput
-            style={styles.searchInput}
-            placeholder="Search internships..."
-            value={searchQuery}
-            onChangeText={setSearchQuery}
-          />
-        </View>
-      )}
-
-      {/* Department Filter Bar */}
-      <View style={styles.categoryBarContainer}>
-        <ScrollView
-          horizontal
-          showsHorizontalScrollIndicator={false}
-          contentContainerStyle={styles.categoryBar}
-        >
-          {DEPARTMENTS.map((dept) => (
-            <TouchableOpacity
-              key={dept.id}
-              style={[
-                styles.categoryBtn,
-                selectedDept === dept.id ? styles.categoryBtnActive : styles.categoryBtnInactive,
-              ]}
-              onPress={() => setSelectedDept(dept.id)}
-            >
-              <Text
-                style={[
-                  styles.categoryText,
-                  selectedDept === dept.id ? styles.categoryTextActive : styles.categoryTextInactive,
-                ]}
-              >
-                {dept.name}
-              </Text>
-            </TouchableOpacity>
-          ))}
-        </ScrollView>
-      </View>
-
       <ScrollView contentContainerStyle={styles.content}>
-        <Text style={styles.sectionTitle}>Available Positions</Text>
+        <View style={styles.welcomeSection}>
+          <Text style={styles.welcomeText}>Welcome   back,</Text>
+          <Text style={styles.userName}>Intern</Text>
+          <Text style={styles.roleText}>Software Engineering Intern</Text>
+        </View>
 
-        {[1, 2, 3].map((item) => (
-          <AppCard key={item} style={styles.jobCard}>
-            <View style={styles.jobHeader}>
-              <View style={styles.logoContainer}>
-                <Ionicons name="business" size={24} color={COLORS.primary} />
-              </View>
-              <View style={styles.jobTitleContainer}>
-                <Text style={styles.jobTitle}>Software Engineer Intern</Text>
-                <Text style={styles.companyName}>Digimark Consulting Sarl</Text>
-              </View>
-            </View>
-
-            <View style={styles.badgeRow}>
-              <View style={styles.badge}>
-                <Text style={styles.badgeText}>3 Months</Text>
-              </View>
-            </View>
-
-            <Text style={styles.jobDescription} numberOfLines={3}>
-              We are looking for a passionate software engineer intern to join our team.
-              You will work on exciting projects using the latest technologies.
-            </Text>
-
-            <Image
-              source={{ uri: 'https://via.placeholder.com/300x150' }}
-              style={styles.jobImage}
-            />
+        <View style={styles.statsGrid}>
+          <AppCard style={styles.statCard}>
+            <Ionicons name="calendar-outline" size={24} color={COLORS.primary} />
+            <Text style={styles.statValue}>12</Text>
+            <Text style={styles.statLabel}>Days Present</Text>
           </AppCard>
-        ))}
+          <AppCard style={styles.statCard}>
+            <Ionicons name="checkmark-circle-outline" size={24} color={COLORS.primary} />
+            <Text style={styles.statValue}>5</Text>
+            <Text style={styles.statLabel}>Tasks Done</Text>
+          </AppCard>
+        </View>
+
+        <View style={styles.sectionHeader}>
+          <Text style={styles.sectionTitle}>Current Task</Text>
+          <TouchableOpacity onPress={() => router.push('/(app)/tasks')}>
+            <Text style={styles.seeAllText}>See All</Text>
+          </TouchableOpacity>
+        </View>
+
+        <AppCard style={styles.taskCard}>
+          <View style={styles.taskHeader}>
+            <Text style={styles.taskTitle}>Implement Authentication</Text>
+            <View style={styles.statusBadge}>
+              <Text style={styles.statusText}>In Progress</Text>
+            </View>
+          </View>
+          <Text style={styles.taskDesc} numberOfLines={2}>
+            Build the login and forgot password screens using React Native and Expo Router.
+          </Text>
+          <View style={styles.taskFooter}>
+            <Ionicons name="time-outline" size={16} color={COLORS.textSecondary} />
+            <Text style={styles.dueDateText}>Due in 2 days</Text>
+          </View>
+        </AppCard>
+
+        <View style={styles.sectionHeader}>
+          <Text style={styles.sectionTitle}>Today's Schedule</Text>
+          <TouchableOpacity onPress={() => router.push('/(app)/timetable')}>
+            <Text style={styles.seeAllText}>Full Schedule</Text>
+          </TouchableOpacity>
+        </View>
+
+        <AppCard style={styles.scheduleCard}>
+          <View style={styles.timelineLine} />
+          
+          <View style={styles.scheduleItem}>
+            <View style={styles.timelineDot} />
+            <View style={styles.scheduleTime}>
+              <Text style={styles.timeText}>09:00 AM</Text>
+            </View>
+            <View style={styles.scheduleDetails}>
+              <Text style={styles.scheduleTitle}>Daily Standup</Text>
+              <Text style={styles.scheduleSubtitle}>Google Meet</Text>
+            </View>
+          </View>
+
+          <View style={[styles.scheduleItem, { marginTop: SPACING.md }]}>
+            <View style={[styles.timelineDot, styles.timelineDotInactive]} />
+            <View style={styles.scheduleTime}>
+              <Text style={styles.timeText}>11:30 AM</Text>
+            </View>
+            <View style={styles.scheduleDetails}>
+              <Text style={styles.scheduleTitle}>Code Review</Text>
+              <Text style={styles.scheduleSubtitle}>Engineering Team</Text>
+            </View>
+          </View>
+        </AppCard>
+
       </ScrollView>
     </SafeLayout>
   );
@@ -108,115 +104,158 @@ export default function DashboardScreen() {
 const styles = StyleSheet.create({
   content: {
     padding: SPACING.md,
+    paddingBottom: SPACING.xxl,
   },
-  searchBar: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: COLORS.white,
-    marginHorizontal: SPACING.md,
-    marginTop: SPACING.sm,
-    paddingHorizontal: SPACING.sm,
-    borderRadius: RADIUS.md,
-    borderWidth: 1,
-    borderColor: COLORS.border,
+  welcomeSection: {
+    marginBottom: SPACING.xl,
   },
-  searchInput: {
-    flex: 1,
-    height: 40,
-    marginLeft: SPACING.xs,
+  welcomeText: {
+    fontSize: FONTS.sizes.md,
+    color: COLORS.textSecondary,
+  },
+  userName: {
+    fontSize: FONTS.sizes.xxl,
+    fontWeight: '800',
+    color: COLORS.textPrimary,
+    marginTop: 2,
+  },
+  roleText: {
     fontSize: FONTS.sizes.sm,
-  },
-  categoryBarContainer: {
-    paddingVertical: SPACING.md,
-  },
-  categoryBar: {
-    paddingHorizontal: SPACING.md,
-    gap: SPACING.sm,
-  },
-  categoryBtn: {
-    paddingHorizontal: SPACING.md,
-    paddingVertical: SPACING.sm,
-    borderRadius: RADIUS.full,
-    borderWidth: 2,
-  },
-  categoryBtnActive: {
-    backgroundColor: COLORS.secondary,
-    borderColor: COLORS.secondary,
-  },
-  categoryBtnInactive: {
-    backgroundColor: 'transparent',
-    borderColor: COLORS.secondary,
-  },
-  categoryText: {
-    fontSize: FONTS.sizes.sm,
+    color: COLORS.primary,
     fontWeight: '600',
+    marginTop: SPACING.xs,
   },
-  categoryTextActive: {
-    color: COLORS.white,
+  statsGrid: {
+    flexDirection: 'row',
+    gap: SPACING.md,
+    marginBottom: SPACING.xl,
   },
-  categoryTextInactive: {
-    color: COLORS.secondary,
+  statCard: {
+    flex: 1,
+    padding: SPACING.md,
+    alignItems: 'center',
+  },
+  statValue: {
+    fontSize: 24,
+    fontWeight: '800',
+    color: COLORS.textPrimary,
+    marginTop: SPACING.sm,
+  },
+  statLabel: {
+    fontSize: FONTS.sizes.xs,
+    color: COLORS.textSecondary,
+    marginTop: 2,
+  },
+  sectionHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: SPACING.sm,
   },
   sectionTitle: {
     fontSize: FONTS.sizes.lg,
     fontWeight: '700',
+    color: COLORS.textPrimary,
+  },
+  seeAllText: {
+    fontSize: FONTS.sizes.sm,
     color: COLORS.primary,
-    marginBottom: SPACING.sm,
+    fontWeight: '600',
   },
-  jobCard: {
-    marginBottom: SPACING.md,
+  taskCard: {
     padding: SPACING.md,
+    marginBottom: SPACING.xl,
   },
-  jobHeader: {
+  taskHeader: {
     flexDirection: 'row',
-    alignItems: 'center',
+    justifyContent: 'space-between',
+    alignItems: 'flex-start',
     marginBottom: SPACING.sm,
   },
-  logoContainer: {
-    width: 40,
-    height: 40,
-    borderRadius: RADIUS.sm,
-    backgroundColor: COLORS.background,
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginRight: SPACING.sm,
-  },
-  jobTitleContainer: {
+  taskTitle: {
     flex: 1,
-  },
-  jobTitle: {
     fontSize: FONTS.sizes.md,
     fontWeight: '700',
     color: COLORS.textPrimary,
+    marginRight: SPACING.sm,
   },
-  companyName: {
-    fontSize: FONTS.sizes.xs,
-    color: COLORS.textSecondary,
-  },
-  badgeRow: {
-    flexDirection: 'row',
-    marginBottom: SPACING.sm,
-  },
-  badge: {
-    backgroundColor: COLORS.primaryLight,
+  statusBadge: {
+    backgroundColor: '#ffe0b2',
     paddingHorizontal: SPACING.sm,
-    paddingVertical: 2,
+    paddingVertical: 4,
     borderRadius: RADIUS.sm,
   },
-  badgeText: {
-    color: COLORS.white,
-    fontSize: 10,
-    fontWeight: '600',
+  statusText: {
+    color: '#e65100',
+    fontSize: FONTS.sizes.xs,
+    fontWeight: '700',
   },
-  jobDescription: {
+  taskDesc: {
     fontSize: FONTS.sizes.sm,
     color: COLORS.textSecondary,
-    marginBottom: SPACING.sm,
     lineHeight: 20,
+    marginBottom: SPACING.md,
   },
-  jobImage: {
-    width: '100%',
-    height: 150,
-    borderRadius: RADIUS.md,
+  taskFooter: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  dueDateText: {
+    fontSize: FONTS.sizes.xs,
+    color: COLORS.textSecondary,
+    marginLeft: 4,
+    fontWeight: '500',
+  },
+  scheduleCard: {
+    padding: SPACING.md,
+    marginBottom: SPACING.md,
+  },
+  timelineLine: {
+    position: 'absolute',
+    left: SPACING.md + 6,
+    top: SPACING.xl,
+    bottom: SPACING.lg,
+    width: 2,
+    backgroundColor: COLORS.border,
+  },
+  scheduleItem: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+  },
+  timelineDot: {
+    width: 14,
+    height: 14,
+    borderRadius: 7,
+    backgroundColor: COLORS.primary,
+    borderWidth: 3,
+    borderColor: '#ffb84d',
+    marginRight: SPACING.md,
+    marginTop: 2,
+    zIndex: 1,
+  },
+  timelineDotInactive: {
+    backgroundColor: COLORS.border,
+    borderColor: '#f5f5f5',
+  },
+  scheduleTime: {
+    width: 70,
+  },
+  timeText: {
+    fontSize: FONTS.sizes.xs,
+    fontWeight: '600',
+    color: COLORS.textPrimary,
+  },
+  scheduleDetails: {
+    flex: 1,
+  },
+  scheduleTitle: {
+    fontSize: FONTS.sizes.sm,
+    fontWeight: '700',
+    color: COLORS.textPrimary,
+    marginBottom: 2,
+  },
+  scheduleSubtitle: {
+    fontSize: FONTS.sizes.xs,
+    color: COLORS.textSecondary,
   },
 });

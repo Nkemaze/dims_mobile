@@ -5,7 +5,7 @@ import { COLORS, RADIUS, SPACING } from '@/constants/theme';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useRouter } from 'expo-router';
 import React from 'react';
-import { Image, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { Image, StyleSheet, Text, TouchableOpacity, View, Linking } from 'react-native';
 const logo = require('../../assets/images/dims.png')
 
 export default function LoginScreen() {
@@ -64,9 +64,9 @@ export default function LoginScreen() {
           <AppButton title="LOGIN" onPress={handleLogin} style={styles.loginBtn} />
 
           <View style={styles.footer}>
-            <Text style={styles.footerText}>Don&apos;t have an account? </Text>
-            <TouchableOpacity onPress={() => router.push('/(auth)/signup')}>
-              <Text style={styles.signupText}>Sign Up</Text>
+            <Text style={styles.footerText}>Looking for an internship? </Text>
+            <TouchableOpacity onPress={() => Linking.openURL('https://internship.digimarkconsulting.cm/internships')}>
+              <Text style={styles.signupText}>Apply Here</Text>
             </TouchableOpacity>
           </View>
         </View>

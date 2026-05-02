@@ -7,7 +7,6 @@ import { COLORS, SPACING } from '@/constants/theme';
 const TAB_ICONS: Record<string, { active: any, inactive: any }> = {
   dashboard: { active: 'home', inactive: 'home-outline' },
   tasks: { active: 'checkbox', inactive: 'checkbox-outline' },
-  notifications: { active: 'notifications', inactive: 'notifications-outline' },
   tools: { active: 'build', inactive: 'build-outline' },
   profile: { active: 'person', inactive: 'person-outline' },
 };

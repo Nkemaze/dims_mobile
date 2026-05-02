@@ -7,22 +7,24 @@ import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 interface ScreenHeaderProps {
   title: string;
   showBack?: boolean;
+  onBackPress?: () => void;
   showSearch?: boolean;
   showBell?: boolean;
-  showChat?: boolean;
+  showProfile?: boolean;
   onSearchPress?: () => void;
-  onChatPress?: () => void;
+  onProfilePress?: () => void;
   onBellPress?: () => void;
 }
 
 export const ScreenHeader: React.FC<ScreenHeaderProps> = ({
   title,
   showBack = false,
+  onBackPress,
   showSearch = false,
   showBell = false,
-  showChat = false,
+  showProfile = false,
   onSearchPress,
-  onChatPress,
+  onProfilePress,
   onBellPress,
 }) => {
   const router = useRouter();
@@ -31,7 +33,7 @@ export const ScreenHeader: React.FC<ScreenHeaderProps> = ({
     <View style={styles.header}>
       <View style={styles.leftContainer}>
         {showBack ? (
-          <TouchableOpacity onPress={() => router.back()} style={styles.iconBtn}>
+          <TouchableOpacity onPress={onBackPress ? onBackPress : () => router.back()} style={styles.iconBtn}>
             <Ionicons name="arrow-back" size={24} color={COLORS.primary} />
           </TouchableOpacity>
         ) : null}
@@ -45,9 +47,9 @@ export const ScreenHeader: React.FC<ScreenHeaderProps> = ({
             <Ionicons name="search-outline" size={22} color={COLORS.primary} />
           </TouchableOpacity>
         )}
-        {showChat && (
-          <TouchableOpacity onPress={onChatPress} style={styles.iconBtn}>
-            <Ionicons name="chatbubble-outline" size={22} color={COLORS.primary} />
+        {showProfile && (
+          <TouchableOpacity onPress={onProfilePress} style={styles.iconBtn}>
+            <Ionicons name="person-circle-outline" size={26} color={COLORS.primary} />
           </TouchableOpacity>
         )}
         {showBell && (

@@ -1,14 +1,31 @@
-import React from 'react';
-import { View, Text, StyleSheet } from 'react-native';
+import React, { useState } from 'react';
+import { View, Text, StyleSheet,TextInput } from 'react-native';
 import { SafeLayout } from '@/components/layout/SafeLayout';
 import { ScreenHeader } from '@/components/common/ScreenHeader';
 import { Ionicons } from '@expo/vector-icons';
-import { COLORS, FONTS, SPACING } from '@/constants/theme';
+import { COLORS, FONTS, SPACING, RADIUS } from '@/constants/theme';
 
 export default function ToolsScreen() {
+  const [showSearch, setShowSearch] = useState(false);
+  const [searchQuery, setSearchQuery] = useState('');
   return (
     <SafeLayout>
-      <ScreenHeader title="Tools" showBell showSearch />
+      <ScreenHeader title="Tools" 
+        showBell 
+        showSearch 
+        onSearchPress={() => setShowSearch(!showSearch)} 
+      />
+      {showSearch && (
+        <View style={styles.searchBar}>
+          <Ionicons name="search" size={20} color={COLORS.textMuted} />
+          <TextInput
+            style={styles.searchInput}
+            placeholder="Search tool..."
+            value={searchQuery}
+            onChangeText={setSearchQuery}
+          />
+        </View>
+      )}
       <View style={styles.container}>
         <Ionicons name="build" size={100} color={COLORS.primary} style={styles.icon} />
         <Text style={styles.title}>You have no tools available for now</Text>
@@ -42,4 +59,21 @@ const styles = StyleSheet.create({
     color: COLORS.textSecondary,
     textAlign: 'center',
   },
+  searchBar: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: COLORS.white,
+    marginHorizontal: SPACING.md,
+    marginTop: SPACING.sm,
+    paddingHorizontal: SPACING.sm,
+    borderRadius: RADIUS.md,
+    borderWidth: 1,
+    borderColor: COLORS.border,
+  },
+  searchInput: {
+    flex: 1,
+    height: 40,
+    marginLeft: SPACING.xs,
+    fontSize: FONTS.sizes.sm,
+  }
 });

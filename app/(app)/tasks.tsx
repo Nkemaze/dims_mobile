@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { FlatList, View, StyleSheet, ScrollView, TouchableOpacity, Text } from 'react-native';
+import { FlatList, View, StyleSheet, ScrollView, TouchableOpacity, Text, TextInput } from 'react-native';
 import { useRouter } from 'expo-router';
 import { SafeLayout } from '@/components/layout/SafeLayout';
 import { ScreenHeader } from '@/components/common/ScreenHeader';
@@ -9,11 +9,14 @@ import { LoadingSpinner } from '@/components/common/LoadingSpinner';
 import { useTasks } from '@/hooks/useTasks';
 import { Task } from '@/types/task.types';
 import { COLORS, FONTS, RADIUS, SPACING } from '@/constants/theme';
+import { Ionicons } from '@expo/vector-icons';
 
 export default function TasksScreen() {
   const { tasks, isLoading } = useTasks();
   const router = useRouter();
   const [activeFilter, setActiveFilter] = useState('All');
+  const [showSearch, setShowSearch] = useState(false);
+  const [searchQuery, setSearchQuery] = useState('');
 
   const handlePress = (task: Task) => {
     router.push({ pathname: '/(app)/task-detail' as any, params: { id: task.id } });
@@ -25,7 +28,24 @@ export default function TasksScreen() {
 
   return (
     <SafeLayout scrollable={false}>
-      <ScreenHeader title="Tasks" showSearch showBell />
+      <ScreenHeader title="Tasks" 
+        showSearch 
+        showBell 
+        onBellPress={() => router.push('/(app)/notifications')} 
+        onSearchPress={() => setShowSearch(!showSearch)} 
+      />
+
+      {showSearch && (
+        <View style={styles.searchBar}>
+          <Ionicons name="search" size={20} color={COLORS.textMuted} />
+          <TextInput
+            style={styles.searchInput}
+            placeholder="Search task..."
+            value={searchQuery}
+            onChangeText={setSearchQuery}
+          />
+        </View>
+      )}
 
       <View style={styles.filterContainer}>
         <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.filterBar}>
@@ -99,4 +119,21 @@ const styles = StyleSheet.create({
   filterTextInactive: {
     color: COLORS.secondary,
   },
+  searchBar: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: COLORS.white,
+    marginHorizontal: SPACING.md,
+    marginTop: SPACING.sm,
+    paddingHorizontal: SPACING.sm,
+    borderRadius: RADIUS.md,
+    borderWidth: 1,
+    borderColor: COLORS.border,
+  },
+  searchInput: {
+    flex: 1,
+    height: 40,
+    marginLeft: SPACING.xs,
+    fontSize: FONTS.sizes.sm,
+  }
 });
