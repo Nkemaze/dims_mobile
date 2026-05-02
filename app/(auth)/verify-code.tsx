@@ -33,7 +33,7 @@ export default function VerifyCodeScreen() {
         <View style={styles.body}>
           <Text style={styles.heading}>Enter 6-digit code</Text>
           <Text style={styles.sub}>
-            We've sent an email with a verification code to {email || 'your email'}.
+            We&apos;ve sent an email with a verification code to {email || 'your email'}.
           </Text>
           <AppInput
             label="Verification Code"

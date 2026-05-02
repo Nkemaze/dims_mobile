@@ -64,7 +64,7 @@ export default function DashboardScreen() {
         </AppCard>
 
         <View style={styles.sectionHeader}>
-          <Text style={styles.sectionTitle}>Today's Schedule</Text>
+          <Text style={styles.sectionTitle}>Today&apos;s Schedule</Text>
           <TouchableOpacity onPress={() => router.push('/(app)/timetable')}>
             <Text style={styles.seeAllText}>Full Schedule</Text>
           </TouchableOpacity>

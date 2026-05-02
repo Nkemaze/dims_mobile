@@ -1,13 +1,23 @@
-// ─── App API Base URL ────────────────────────────────────────────────────────
-// Replace with your actual backend URL
-export const BASE_URL = process.env.EXPO_PUBLIC_API_BASE_URL || 'http://localhost:5000/api';
+// ─── App API Base URLs ──────────────────────────────────────────────────────
+export const API_BASE_URL = process.env.EXPO_PUBLIC_API_BASE_URL || 'https://api.digimarkconsulting.cm/api/v1';
+export const AUTH_BASE_URL = process.env.EXPO_PUBLIC_AUTH_BASE_URL || 'https://auth.digimarkconsulting.cm/api/auth';
+
+// For backward compatibility if needed
+export const BASE_URL = API_BASE_URL;
 
 // ─── Auth Endpoints ──────────────────────────────────────────────────────────
 export const AUTH_ENDPOINTS = {
-  LOGIN: '/auth/login',
-  LOGOUT: '/auth/logout',
-  FORGOT_PASSWORD: '/auth/forgot-password',
-  ME: '/auth/me',
+  LOGIN: '/login',
+  LOGOUT: '/logout',
+  SIGNUP: '/signup',
+  SIGNUP_ADMIN: '/signupA',
+  VERIFY_EMAIL: '/verify-email',
+  CHECK_AUTH: '/check-auth',
+  FORGOT_PASSWORD: '/forgot-password',
+  RESET_PASSWORD: '/reset-password',
+  TOKEN_EXPIRE: '/token_expire',
+  GET_TOKEN_INFO: '/get_token_info',
+  VISITOR_TOKEN: '/visitor_token',
 };
 
 // ─── Intern Endpoints ────────────────────────────────────────────────────────

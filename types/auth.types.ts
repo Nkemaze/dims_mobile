@@ -1,9 +1,11 @@
 export interface Intern {
   id: string;
-  firstName: string;
-  lastName: string;
+  firstName?: string;
+  lastName?: string;
+  name?: string;
   email: string;
   phone?: string;
+  phonenumber?: string;
   department?: string;
   supervisorId?: string;
   startDate?: string;
@@ -23,6 +25,23 @@ export interface LoginPayload {
 }
 
 export interface LoginResponse {
+  success: boolean;
+  message: string;
+  isVerified?: boolean;
   token: string;
   user: Intern;
+}
+
+export interface SignupPayload {
+  email: string;
+  password: string;
+  name: string;
+  phonenumber: string;
+}
+
+export interface SignupResponse {
+  success: boolean;
+  token: string;
+  user: Intern;
+  message: string;
 }
