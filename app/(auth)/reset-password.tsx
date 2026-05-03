@@ -1,5 +1,5 @@
-import React, { useState } from 'react';
-import { View, Text, StyleSheet, Alert } from 'react-native';
+import React, { useState, useEffect } from 'react';
+import { View, Text, StyleSheet, Alert, ScrollView } from 'react-native';
 import { SafeLayout } from '@/components/layout/SafeLayout';
 import { AppInput } from '@/components/common/AppInput';
 import { AppButton } from '@/components/common/AppButton';
@@ -13,33 +13,60 @@ export default function ResetPasswordScreen() {
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const router = useRouter();
-  const { token } = useLocalSearchParams();
+  const { token, email } = useLocalSearchParams();
 
   const { resetPassword, isLoading, error, clearError } = useAuthStore();
 
+  useEffect(() => {
+    if (!token) {
+      Alert.alert(
+        'Invalid Access',
+        'Missing reset token. Please request a new reset code.',
+        [{ text: 'Go Back', onPress: () => router.replace('/(auth)/forgot-password') }]
+      );
+    }
+    return () => clearError();
+  }, [token, clearError, router]);
+
   const handleReset = async () => {
+    // Validation
     if (!password || !confirmPassword) {
-      Alert.alert('Error', 'Please fill in all fields');
+      Alert.alert('Validation Error', 'Both password fields are required.');
       return;
     }
 
     if (password.length < 8) {
-      Alert.alert('Error', 'Password must be at least 8 characters');
+      Alert.alert('Security Requirement', 'Your new password must be at least 8 characters long for better security.');
       return;
     }
 
     if (password !== confirmPassword) {
-      Alert.alert('Error', 'Passwords do not match');
+      Alert.alert('Mismatch', 'The passwords you entered do not match. Please re-type them.');
       return;
     }
 
-    const result = await resetPassword(token as string, password);
-    if (result.success) {
-      Alert.alert('Success', 'Password reset successfully. You can now login with your new password.', [
-        { text: 'Login', onPress: () => router.replace('/(auth)/login') }
-      ]);
-    } else {
-      Alert.alert('Error', result.message);
+    if (!token) {
+      Alert.alert('Error', 'Reset token is missing. Please try the process again.');
+      return;
+    }
+
+    // API Call
+    try {
+      const result = await resetPassword(token as string, password);
+
+      if (result.success) {
+        Alert.alert(
+          'Success!',
+          'Your password has been reset successfully. You can now log in with your new credentials.',
+          [{ text: 'Log In Now', onPress: () => router.replace('/(auth)/login') }]
+        );
+      } else {
+        // This handles cases where the API returns success: false with a message
+        Alert.alert('Reset Failed', result.message || 'We could not reset your password at this time. Please check your internet connection or try again later.');
+      }
+    } catch (err: any) {
+      // General error handling if the store doesn't catch it
+      Alert.alert('An Unexpected Error Occurred', err.message || 'Something went wrong. Please try again.');
     }
   };
 
@@ -48,44 +75,55 @@ export default function ResetPasswordScreen() {
       colors={['#ffffff', '#ffeacaff', '#ffe6bfff']}
       style={styles.gradient}
     >
-      <SafeLayout scrollable={false} style={styles.safeArea} contentStyle={styles.container}>
+      <SafeLayout scrollable={true} style={styles.safeArea} contentStyle={styles.container}>
         <ScreenHeader title="Create New Password" showBack />
-        <View style={styles.body}>
-          <Text style={styles.heading}>Enter new password</Text>
-          <Text style={styles.sub}>
-            Your new password must be different from previous used passwords.
-          </Text>
 
-          {error && (
-            <View style={styles.errorContainer}>
-              <Text style={styles.errorText}>{error}</Text>
-            </View>
-          )}
-          
-          <AppInput
-            label="New Password"
-            placeholder="Must be at least 8 characters"
-            isPassword
-            value={password}
-            onChangeText={(text) => {
-              setPassword(text);
-              if (error) clearError();
-            }}
-          />
-          
-          <AppInput
-            label="Confirm Password"
-            placeholder="Both passwords must match"
-            isPassword
-            value={confirmPassword}
-            onChangeText={(text) => {
-              setConfirmPassword(text);
-              if (error) clearError();
-            }}
-          />
-          
-          <AppButton title="Reset Password" onPress={handleReset} isLoading={isLoading} />
-        </View>
+        <ScrollView contentContainerStyle={styles.scrollContent}>
+          <View style={styles.body}>
+            <Text style={styles.heading}>New Credentials</Text>
+            <Text style={styles.sub}>
+              Resetting password for: <Text style={styles.emailHighlight}>{email || 'your account'}</Text>
+            </Text>
+            <Text style={styles.instruction}>
+              Please enter your new password below. Make sure it is strong and unique.
+            </Text>
+
+            {error && (
+              <View style={styles.errorContainer}>
+                <Text style={styles.errorText}>{error}</Text>
+              </View>
+            )}
+
+            <AppInput
+              label="New Password"
+              placeholder="Enter at least 8 characters"
+              isPassword
+              value={password}
+              onChangeText={(text) => {
+                setPassword(text);
+                if (error) clearError();
+              }}
+            />
+
+            <AppInput
+              label="Confirm New Password"
+              placeholder="Repeat your new password"
+              isPassword
+              value={confirmPassword}
+              onChangeText={(text) => {
+                setConfirmPassword(text);
+                if (error) clearError();
+              }}
+            />
+
+            <AppButton
+              title="UPDATE PASSWORD"
+              onPress={handleReset}
+              isLoading={isLoading}
+              style={styles.submitBtn}
+            />
+          </View>
+        </ScrollView>
       </SafeLayout>
     </LinearGradient>
   );
@@ -98,21 +136,34 @@ const styles = StyleSheet.create({
   container: { 
     flex: 1 
   },
+  scrollContent: {
+    paddingBottom: SPACING.xl,
+  },
   body: { 
-    marginTop: SPACING.xl,
+    marginTop: SPACING.lg,
     padding: SPACING.lg,
     gap: SPACING.md,
     backgroundColor: 'rgba(255, 255, 255, 0.4)',
     borderRadius: RADIUS.lg,
     borderWidth: 1,
     borderColor: 'rgba(255, 255, 255, 0.8)',
+    marginHorizontal: SPACING.md,
   },
   heading: {
-    color: COLORS.textPrimary,
+    color: COLORS.primary,
     fontSize: FONTS.sizes.xl,
     fontWeight: '700',
   },
   sub: {
+    color: COLORS.textSecondary,
+    fontSize: FONTS.sizes.sm,
+    marginBottom: SPACING.xs,
+  },
+  emailHighlight: {
+    color: COLORS.primary,
+    fontWeight: '600',
+  },
+  instruction: {
     color: COLORS.textSecondary,
     fontSize: FONTS.sizes.md,
     lineHeight: 22,
@@ -130,6 +181,11 @@ const styles = StyleSheet.create({
     color: COLORS.error,
     fontSize: 14,
     textAlign: 'center',
+    fontWeight: '500',
+  },
+  submitBtn: {
+    marginTop: SPACING.md,
+    backgroundColor: COLORS.primary,
   },
   gradient: {
     flex: 1,
