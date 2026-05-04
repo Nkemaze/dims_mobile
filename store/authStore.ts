@@ -1,6 +1,7 @@
 import { create } from 'zustand';
 import { Intern } from '@/types/auth.types';
 import { authService } from '@/services/authService';
+import { profileService } from '@/services/profileService';
 import { storage } from '@/utils/storage';
 
 interface AuthStore {
@@ -34,16 +35,25 @@ export const useAuthStore = create<AuthStore>((set) => ({
       const response = await authService.login({ email, password });
 
       if (response.success) {
-        const { token, user, isVerified } = response;
+        const { token, user: loginUser, isVerified } = response;
 
         if (isVerified === false) {
           set({ isLoading: false, isVerified: false });
           return { success: true, isVerified: false, message: response.message };
         }
 
+        // Fetch complete user profile from v1 API
+        let completeUser = loginUser;
+        try {
+          const profile = await profileService.getById(loginUser.id);
+          if (profile) completeUser = { ...loginUser, ...profile };
+        } catch (profileError) {
+          console.warn('Failed to fetch full profile:', profileError);
+        }
+
         await storage.saveToken(token);
-        await storage.saveUser(user);
-        set({ token, user, isAuthenticated: true, isVerified: true, isLoading: false });
+        await storage.saveUser(completeUser);
+        set({ token, user: completeUser, isAuthenticated: true, isVerified: true, isLoading: false });
         return { success: true, isVerified: true };
       } else {
         set({ isLoading: false, error: response.message || 'Login failed' });
