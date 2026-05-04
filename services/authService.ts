@@ -32,12 +32,14 @@ export const authService = {
     return data;
   },
 
-  forgotPassword: async (email: string): Promise<void> => {
-    await authApi.post(AUTH_ENDPOINTS.FORGOT_PASSWORD, { email });
+  forgotPassword: async (email: string): Promise<any> => {
+    const { data } = await authApi.post(AUTH_ENDPOINTS.FORGOT_PASSWORD, { email });
+    return data;
   },
 
-  resetPassword: async (token: string, password: string): Promise<void> => {
-    await authApi.post(AUTH_ENDPOINTS.RESET_PASSWORD, { token, password });
+  resetPassword: async (token: string, password: string): Promise<any> => {
+    const { data } = await authApi.post(AUTH_ENDPOINTS.RESET_PASSWORD, { token, password });
+    return data;
   },
 
   tokenExpire: async (): Promise<any> => {

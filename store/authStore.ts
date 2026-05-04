@@ -86,9 +86,9 @@ export const useAuthStore = create<AuthStore>((set) => ({
   forgotPassword: async (email: string) => {
     set({ isLoading: true, error: null });
     try {
-      await authService.forgotPassword(email);
+      const response = await authService.forgotPassword(email);
       set({ isLoading: false });
-      return { success: true, message: 'Password reset code sent to your email.' };
+      return { success: true, message: response?.message || 'Password reset code sent to your email.' };
     } catch (err: any) {
       const errorMessage = err.response?.data?.message || err.message || 'Failed to send reset code';
       set({ isLoading: false, error: errorMessage });
@@ -99,9 +99,9 @@ export const useAuthStore = create<AuthStore>((set) => ({
   resetPassword: async (token: string, password: string) => {
     set({ isLoading: true, error: null });
     try {
-      await authService.resetPassword(token, password);
+      const response = await authService.resetPassword(token, password);
       set({ isLoading: false });
-      return { success: true, message: 'Password reset successful.' };
+      return { success: true, message: response?.message || 'Password reset successful.' };
     } catch (err: any) {
       const errorMessage = err.response?.data?.message || err.message || 'Failed to reset password';
       set({ isLoading: false, error: errorMessage });

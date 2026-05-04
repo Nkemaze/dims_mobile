@@ -1,10 +1,10 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, StyleSheet, Alert, ScrollView } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, Modal } from 'react-native';
 import { SafeLayout } from '@/components/layout/SafeLayout';
 import { AppInput } from '@/components/common/AppInput';
 import { AppButton } from '@/components/common/AppButton';
 import { ScreenHeader } from '@/components/common/ScreenHeader';
-import { COLORS, FONTS, SPACING, RADIUS  } from '@/constants/theme';
+import { COLORS, FONTS, SPACING, RADIUS } from '@/constants/theme';
 import { useAuthStore } from '@/store/authStore';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useRouter, useLocalSearchParams } from 'expo-router';
@@ -12,61 +12,96 @@ import { useRouter, useLocalSearchParams } from 'expo-router';
 export default function ResetPasswordScreen() {
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
+  const [modalConfig, setModalConfig] = useState({
+    visible: false,
+    title: '',
+    message: '',
+    actions: [] as { text: string; onPress: () => void; variant?: 'primary' | 'outline' }[]
+  });
+
   const router = useRouter();
   const { token, email } = useLocalSearchParams();
-
   const { resetPassword, isLoading, error, clearError } = useAuthStore();
 
+  // ── Modal helper ──────────────────────────────────────────
+  const showModal = (
+    title: string,
+    message: string,
+    actions?: { text: string; onPress: () => void; variant?: 'primary' | 'outline' }[]
+  ) => {
+    setModalConfig({
+      visible: true,
+      title,
+      message,
+      actions: actions || [{
+        text: 'OK',
+        onPress: () => setModalConfig(prev => ({ ...prev, visible: false })),
+        variant: 'primary'
+      }]
+    });
+  };
+
+  const closeModal = () => setModalConfig(prev => ({ ...prev, visible: false }));
+
+  // ── Guard: no token ───────────────────────────────────────
   useEffect(() => {
     if (!token) {
-      Alert.alert(
+      showModal(
         'Invalid Access',
         'Missing reset token. Please request a new reset code.',
-        [{ text: 'Go Back', onPress: () => router.replace('/(auth)/forgot-password') }]
+        [{
+          text: 'Go Back',
+          onPress: () => router.replace('/(auth)/forgot-password'),
+          variant: 'primary'
+        }]
       );
     }
     return () => clearError();
   }, [token, clearError, router]);
 
+  // ── Submit ────────────────────────────────────────────────
   const handleReset = async () => {
-    // Validation
     if (!password || !confirmPassword) {
-      Alert.alert('Validation Error', 'Both password fields are required.');
+      showModal('Validation Error', 'Both password fields are required.');
       return;
     }
 
     if (password.length < 8) {
-      Alert.alert('Security Requirement', 'Your new password must be at least 8 characters long for better security.');
+      showModal('Security Requirement', 'Your new password must be at least 8 characters long for better security.');
       return;
     }
 
     if (password !== confirmPassword) {
-      Alert.alert('Mismatch', 'The passwords you entered do not match. Please re-type them.');
+      showModal('Mismatch', 'The passwords you entered do not match. Please re-type them.');
       return;
     }
 
     if (!token) {
-      Alert.alert('Error', 'Reset token is missing. Please try the process again.');
+      showModal('Error', 'Reset token is missing. Please try the process again.');
       return;
     }
 
-    // API Call
     try {
       const result = await resetPassword(token as string, password);
 
       if (result.success) {
-        Alert.alert(
+        showModal(
           'Success!',
-          'Your password has been reset successfully. You can now log in with your new credentials.',
-          [{ text: 'Log In Now', onPress: () => router.replace('/(auth)/login') }]
+          result.message || 'Your password has been reset successfully. You can now log in with your new credentials.',
+          [{
+            text: 'Log In Now',
+            onPress: () => router.replace('/(auth)/login'),
+            variant: 'primary'
+          }]
         );
       } else {
-        // This handles cases where the API returns success: false with a message
-        Alert.alert('Reset Failed', result.message || 'We could not reset your password at this time. Please check your internet connection or try again later.');
+        showModal(
+          'Reset Failed',
+          result.message || 'We could not reset your password. Please try again.'
+        );
       }
     } catch (err: any) {
-      // General error handling if the store doesn't catch it
-      Alert.alert('An Unexpected Error Occurred', err.message || 'Something went wrong. Please try again.');
+      showModal('Unexpected Error', err.message || 'Something went wrong. Please try again.');
     }
   };
 
@@ -82,7 +117,8 @@ export default function ResetPasswordScreen() {
           <View style={styles.body}>
             <Text style={styles.heading}>New Credentials</Text>
             <Text style={styles.sub}>
-              Resetting password for: <Text style={styles.emailHighlight}>{email || 'your account'}</Text>
+              Resetting password for:{' '}
+              <Text style={styles.emailHighlight}>{email || 'your account'}</Text>
             </Text>
             <Text style={styles.instruction}>
               Please enter your new password below. Make sure it is strong and unique.
@@ -125,21 +161,38 @@ export default function ResetPasswordScreen() {
           </View>
         </ScrollView>
       </SafeLayout>
+
+      {/* ── Modal ── */}
+      <Modal visible={modalConfig.visible} transparent animationType="fade">
+        <View style={styles.modalOverlay}>
+          <View style={styles.modalContent}>
+            <Text style={styles.modalTitle}>{modalConfig.title}</Text>
+            <Text style={styles.modalText}>{modalConfig.message}</Text>
+            <View style={styles.modalActions}>
+              {modalConfig.actions.map((action, index) => (
+                <AppButton
+                  key={index}
+                  title={action.text}
+                  onPress={action.onPress}
+                  variant={action.variant || 'primary'}
+                  style={styles.modalBtn}
+                />
+              ))}
+            </View>
+          </View>
+        </View>
+      </Modal>
+
     </LinearGradient>
   );
 }
 
 const styles = StyleSheet.create({
-  safeArea: {
-    backgroundColor: 'transparent',
-  },
-  container: { 
-    flex: 1 
-  },
-  scrollContent: {
-    paddingBottom: SPACING.xl,
-  },
-  body: { 
+  safeArea: { backgroundColor: 'transparent' },
+  container: { flex: 1 },
+  scrollContent: { paddingBottom: SPACING.xl },
+  gradient: { flex: 1, width: '100%', paddingVertical: SPACING.xl },
+  body: {
     marginTop: SPACING.lg,
     padding: SPACING.lg,
     gap: SPACING.md,
@@ -187,9 +240,38 @@ const styles = StyleSheet.create({
     marginTop: SPACING.md,
     backgroundColor: COLORS.primary,
   },
-  gradient: {
+  // ── Modal styles (copied from login) ──
+  modalOverlay: {
     flex: 1,
-    width: '100%',
-    paddingVertical: SPACING.xl,
+    backgroundColor: 'rgba(0,0,0,0.5)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: SPACING.xl,
   },
+  modalContent: {
+    backgroundColor: COLORS.surface,
+    padding: SPACING.xl,
+    borderRadius: RADIUS.lg,
+    alignItems: 'center',
+    width: '100%',
+  },
+  modalTitle: {
+    fontSize: FONTS.sizes.lg,
+    fontWeight: '700',
+    color: COLORS.textPrimary,
+    marginBottom: SPACING.sm,
+  },
+  modalText: {
+    fontSize: FONTS.sizes.md,
+    color: COLORS.textSecondary,
+    textAlign: 'center',
+    lineHeight: 22,
+    marginBottom: SPACING.lg,
+  },
+  modalActions: {
+    flexDirection: 'row',
+    width: '100%',
+    gap: SPACING.md,
+  },
+  modalBtn: { flex: 1 },
 });

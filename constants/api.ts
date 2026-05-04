@@ -1,6 +1,6 @@
 // ─── App API Base URLs ──────────────────────────────────────────────────────
-export const API_BASE_URL = process.env.EXPO_PUBLIC_API_BASE_URL || 'https://api.digimarkconsulting.cm/api/v1';
-export const AUTH_BASE_URL = process.env.EXPO_PUBLIC_AUTH_BASE_URL || 'https://auth.digimarkconsulting.cm/api/auth';
+export const API_BASE_URL = process.env.EXPO_PUBLIC_API_BASE_URL || 'http://localhost:3000/api/v1';
+export const AUTH_BASE_URL = process.env.EXPO_PUBLIC_AUTH_BASE_URL || 'http://localhost:3001/api/auth';
 
 // For backward compatibility if needed
 export const BASE_URL = API_BASE_URL;
