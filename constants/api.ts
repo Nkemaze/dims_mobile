@@ -20,29 +20,37 @@ export const AUTH_ENDPOINTS = {
   VISITOR_TOKEN: '/visitor_token',
 };
 
-// ─── Intern Endpoints ────────────────────────────────────────────────────────
+// ─── Intern Endpoints (v1 CRUD) ──────────────────────────────────────────────
 export const TASK_ENDPOINTS = {
-  GET_ALL: '/tasks',
-  GET_BY_ID: (id: string) => `/tasks/${id}`,
-  UPDATE_STATUS: (id: string) => `/tasks/${id}/status`,
+  GET_ALL: '/Tasks',
+  GET_BY_ID: (id: string) => `/Tasks/${id}`,
+  UPDATE: (id: string) => `/Tasks/${id}`,
 };
 
 export const ATTENDANCE_ENDPOINTS = {
-  GET_ALL: '/attendance',
-  MARK: '/attendance/mark',
+  GET_ALL: '/Attendance',
+  GET_BY_ID: (id: string) => `/Attendance/${id}`,
+  CREATE: '/Attendance',
 };
 
 export const TIMETABLE_ENDPOINTS = {
-  GET_ALL: '/timetable',
+  GET_ALL: '/Timetable',
+  GET_BY_ID: (id: string) => `/Timetable/${id}`,
 };
 
 export const NOTIFICATION_ENDPOINTS = {
-  GET_ALL: '/notifications',
-  MARK_READ: (id: string) => `/notifications/${id}/read`,
+  GET_ALL: '/Notifications',
+  UPDATE: (id: string) => `/Notifications/${id}`,
 };
 
 export const PROFILE_ENDPOINTS = {
-  GET: '/profile',
-  UPDATE: '/profile',
-  CHANGE_PASSWORD: '/profile/change-password',
+  GET_BY_ID: (id: string) => `/Users/${id}`,
+  UPDATE: (id: string) => `/Users/${id}`,
+};
+
+// ─── Specialized Routes (v2) ─────────────────────────────────────────────────
+export const V2_ENDPOINTS = {
+  APPLY_INTERNSHIP: '/api/v2/apply_internship',
+  APPLY_COMPETITION: '/api/v2/apply_competition',
+  APPLY_TRAINING: '/api/v2/apply_training',
 };
