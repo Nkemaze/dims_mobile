@@ -1,8 +1,8 @@
 import axios from 'axios';
-import { API_BASE_URL, AUTH_BASE_URL } from '@/constants/api';
+import { API_BASE_URL, AUTH_BASE_URL, DIMS_DB } from '@/constants/api';
 import { storage } from '@/utils/storage';
 
-// ─── Main API Instance ──────────────────────────────────────────────────────
+// ─── Main API Instance (DIMS DB) ─────────────────────────────────────────────
 const api = axios.create({
   baseURL: API_BASE_URL,
   timeout: 10000,
@@ -20,24 +20,37 @@ const authApi = axios.create({
   },
 });
 
-// ─── Request Interceptor: Attach JWT ─────────────────────────────────────────
-const attachToken = async (config: any) => {
+// ─── Request Interceptor: Attach JWT and DB Name ─────────────────────────────
+const attachTokenAndDB = async (config: any) => {
+  const token = await storage.getToken();
+  if (token) {
+    config.headers.Authorization = `Bearer ${token}`;
+  }
+
+  // For the main API, always append _dbname=dims if not already present
+  if (config.baseURL === API_BASE_URL) {
+    config.params = {
+      ...config.params,
+      _dbname: DIMS_DB,
+    };
+  }
+
+  return config;
+};
+
+api.interceptors.request.use(attachTokenAndDB, (error) => Promise.reject(error));
+authApi.interceptors.request.use(async (config) => {
   const token = await storage.getToken();
   if (token) {
     config.headers.Authorization = `Bearer ${token}`;
   }
   return config;
-};
-
-api.interceptors.request.use(attachToken, (error) => Promise.reject(error));
-authApi.interceptors.request.use(attachToken, (error) => Promise.reject(error));
+}, (error) => Promise.reject(error));
 
 // ─── Response Interceptor: Handle 401 ────────────────────────────────────────
 const handle401 = async (error: any) => {
   if (error.response?.status === 401) {
-    // Token expired — clear session
     await storage.clearAll();
-    // Navigation to login is handled by the auth store/guard
   }
   return Promise.reject(error);
 };

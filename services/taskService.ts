@@ -3,9 +3,10 @@ import { TASK_ENDPOINTS } from '@/constants/api';
 import { Task, UpdateTaskPayload } from '@/types/task.types';
 
 export const taskService = {
-  getAll: async (internId?: string): Promise<Task[]> => {
-    const params = internId ? { internId } : {};
-    const { data } = await api.get<Task[]>(TASK_ENDPOINTS.GET_ALL, { params });
+  getByPositionId: async (positionId: string): Promise<Task[]> => {
+    const { data } = await api.get<Task[]>(TASK_ENDPOINTS.GET_ALL, {
+      params: { internshipposition_id: positionId }
+    });
     return data;
   },
 

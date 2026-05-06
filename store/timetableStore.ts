@@ -7,7 +7,7 @@ interface TimetableStore {
   isLoading: boolean;
   error: string | null;
 
-  fetchTimetable: (internId?: string) => Promise<void>;
+  fetchTimetable: () => Promise<void>;
   clearError: () => void;
 }
 
@@ -16,10 +16,11 @@ export const useTimetableStore = create<TimetableStore>((set) => ({
   isLoading: false,
   error: null,
 
-  fetchTimetable: async (internId) => {
+  fetchTimetable: async () => {
     set({ isLoading: true, error: null });
     try {
-      const entries = await timetableService.getAll(internId);
+      // Documentation suggests timetables are general or filtered by some other param
+      const entries = await timetableService.getAll();
       set({ entries, isLoading: false });
     } catch (err: any) {
       set({ isLoading: false, error: err?.message || 'Failed to load timetable' });

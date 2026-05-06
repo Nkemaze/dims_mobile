@@ -8,7 +8,7 @@ interface TaskStore {
   isLoading: boolean;
   error: string | null;
 
-  fetchTasks: (internId?: string) => Promise<void>;
+  fetchTasks: (positionId: string) => Promise<void>;
   fetchTaskById: (id: string) => Promise<void>;
   updateTaskStatus: (id: string, status: TaskStatus) => Promise<void>;
   clearError: () => void;
@@ -20,10 +20,10 @@ export const useTaskStore = create<TaskStore>((set) => ({
   isLoading: false,
   error: null,
 
-  fetchTasks: async (internId) => {
+  fetchTasks: async (positionId) => {
     set({ isLoading: true, error: null });
     try {
-      const tasks = await taskService.getAll(internId);
+      const tasks = await taskService.getByPositionId(positionId);
       set({ tasks, isLoading: false });
     } catch (err: any) {
       set({ isLoading: false, error: err?.message || 'Failed to load tasks' });

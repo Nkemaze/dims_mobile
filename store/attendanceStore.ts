@@ -7,7 +7,7 @@ interface AttendanceStore {
   isLoading: boolean;
   error: string | null;
 
-  fetchAttendance: (internId?: string) => Promise<void>;
+  fetchAttendance: (internId: string) => Promise<void>;
   markAttendance: (date: string, checkIn: string) => Promise<void>;
   clearError: () => void;
 }
@@ -20,7 +20,7 @@ export const useAttendanceStore = create<AttendanceStore>((set) => ({
   fetchAttendance: async (internId) => {
     set({ isLoading: true, error: null });
     try {
-      const records = await attendanceService.getAll(internId);
+      const records = await attendanceService.getByInternId(internId);
       set({ records, isLoading: false });
     } catch (err: any) {
       set({ isLoading: false, error: err?.message || 'Failed to load attendance' });

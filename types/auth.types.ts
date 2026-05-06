@@ -1,11 +1,17 @@
-export interface Intern {
+export interface User {
   id: string;
-  firstName?: string;
-  lastName?: string;
   name?: string;
   email: string;
-  phone?: string;
   phonenumber?: string;
+  role?: string;
+}
+
+export interface Intern {
+  id: string;
+  user_id: string;
+  firstName?: string;
+  lastName?: string;
+  internshipposition_id?: string;
   department?: string;
   supervisorId?: string;
   startDate?: string;
@@ -15,7 +21,8 @@ export interface Intern {
 
 export interface AuthState {
   token: string | null;
-  user: Intern | null;
+  user: User | null;
+  intern: Intern | null;
   isAuthenticated: boolean;
 }
 
@@ -29,7 +36,7 @@ export interface LoginResponse {
   message: string;
   isVerified?: boolean;
   token: string;
-  user: Intern;
+  user: User;
 }
 
 export interface SignupPayload {
@@ -42,6 +49,6 @@ export interface SignupPayload {
 export interface SignupResponse {
   success: boolean;
   token: string;
-  user: Intern;
+  user: User;
   message: string;
 }

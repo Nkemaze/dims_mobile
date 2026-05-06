@@ -14,18 +14,20 @@ import { format } from 'date-fns';
 
 export default function DashboardScreen() {
   const router = useRouter();
-  const { user } = useAuthStore();
+  const { user, intern } = useAuthStore();
   const { tasks, fetchTasks, isLoading: tasksLoading } = useTaskStore();
   const { records, fetchAttendance, isLoading: attendanceLoading } = useAttendanceStore();
   const { entries, fetchTimetable } = useTimetableStore();
 
   useEffect(() => {
-    if (user?.id) {
-      fetchTasks(user.id);
-      fetchAttendance(user.id);
-      fetchTimetable(user.id);
+    if (intern?.id) {
+      fetchAttendance(intern.id);
+      if (intern.internshipposition_id) {
+        fetchTasks(intern.internshipposition_id);
+      }
     }
-  }, [user?.id, fetchTasks, fetchAttendance, fetchTimetable]);
+    fetchTimetable();
+  }, [intern?.id, intern?.internshipposition_id, fetchAttendance, fetchTasks, fetchTimetable]);
 
   const daysPresent = records.filter(r => r.status === 'PRESENT').length;
   const tasksDone = tasks.filter(t => t.status === 'COMPLETED').length;
@@ -47,8 +49,8 @@ export default function DashboardScreen() {
       <ScrollView contentContainerStyle={styles.content}>
         <View style={styles.welcomeSection}>
           <Text style={styles.welcomeText}>Welcome back,</Text>
-          <Text style={styles.userName}>{user?.name || user?.firstName || 'Intern'}</Text>
-          <Text style={styles.roleText}>{user?.department || 'Software Engineering Intern'}</Text>
+          <Text style={styles.userName}>{user?.name || 'Intern'}</Text>
+          <Text style={styles.roleText}>{intern?.department || 'Software Engineering Intern'}</Text>
         </View>
 
         <View style={styles.statsGrid}>
@@ -98,7 +100,9 @@ export default function DashboardScreen() {
             </Text>
             <View style={styles.taskFooter}>
               <Ionicons name="time-outline" size={16} color={COLORS.textSecondary} />
-              <Text style={styles.dueDateText}>Due: {format(new Date(currentTask.dueDate), 'MMM dd, yyyy')}</Text>
+              <Text style={styles.dueDateText}>
+                Due: {currentTask.dueDate ? format(new Date(currentTask.dueDate), 'MMM dd, yyyy') : 'No date'}
+              </Text>
             </View>
           </AppCard>
         ) : (

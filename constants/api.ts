@@ -2,6 +2,9 @@
 export const API_BASE_URL = process.env.EXPO_PUBLIC_API_BASE_URL || 'https://api.digimarkconsulting.cm/api/v1';
 export const AUTH_BASE_URL = process.env.EXPO_PUBLIC_AUTH_BASE_URL || 'https://auth.digimarkconsulting.cm/api/auth';
 
+// ─── Database Names ──────────────────────────────────────────────────────────
+export const DIMS_DB = 'dims';
+
 // For backward compatibility if needed
 export const BASE_URL = API_BASE_URL;
 
@@ -22,35 +25,37 @@ export const AUTH_ENDPOINTS = {
 
 // ─── Intern Endpoints (v1 CRUD) ──────────────────────────────────────────────
 export const TASK_ENDPOINTS = {
-  GET_ALL: '/Tasks',
-  GET_BY_ID: (id: string) => `/Tasks/${id}`,
-  UPDATE: (id: string) => `/Tasks/${id}`,
+  GET_ALL: '/tasks',
+  GET_BY_ID: (id: string) => `/tasks/${id}`,
+  UPDATE: (id: string) => `/tasks/${id}`,
+};
+
+export const INTERN_ENDPOINTS = {
+  GET_ALL: '/interns',
+  GET_BY_ID: (id: string) => `/interns/${id}`,
+};
+
+export const USER_ENDPOINTS = {
+  GET_ALL: '/users',
+  GET_BY_ID: (id: string) => `/users/${id}`,
 };
 
 export const ATTENDANCE_ENDPOINTS = {
-  GET_ALL: '/Attendance',
-  GET_BY_ID: (id: string) => `/Attendance/${id}`,
-  CREATE: '/Attendance',
+  GET_ALL: '/attendances',
+  CREATE: '/attendances',
 };
 
 export const TIMETABLE_ENDPOINTS = {
-  GET_ALL: '/Timetable',
-  GET_BY_ID: (id: string) => `/Timetable/${id}`,
+  GET_ALL: '/timetables',
+  GET_BY_ID: (id: string) => `/timetables/${id}`,
 };
 
 export const NOTIFICATION_ENDPOINTS = {
-  GET_ALL: '/Notifications',
-  UPDATE: (id: string) => `/Notifications/${id}`,
+  GET_ALL: '/notifications',
+  UPDATE: (id: string) => `/notifications/${id}`,
 };
 
 export const PROFILE_ENDPOINTS = {
-  GET_BY_ID: (id: string) => `/Users/${id}`,
-  UPDATE: (id: string) => `/Users/${id}`,
-};
-
-// ─── Specialized Routes (v2) ─────────────────────────────────────────────────
-export const V2_ENDPOINTS = {
-  APPLY_INTERNSHIP: '/api/v2/apply_internship',
-  APPLY_COMPETITION: '/api/v2/apply_competition',
-  APPLY_TRAINING: '/api/v2/apply_training',
+  GET_USER: '/users',
+  GET_INTERN: '/interns',
 };
