@@ -3,9 +3,10 @@ import { ATTENDANCE_ENDPOINTS } from '@/constants/api';
 import { AttendanceRecord, MarkAttendancePayload } from '@/types/attendance.types';
 
 export const attendanceService = {
-  getAll: async (internId?: string): Promise<AttendanceRecord[]> => {
-    const params = internId ? { internId } : {};
-    const { data } = await api.get<AttendanceRecord[]>(ATTENDANCE_ENDPOINTS.GET_ALL, { params });
+  getByInternId: async (internId: string): Promise<AttendanceRecord[]> => {
+    const { data } = await api.get<AttendanceRecord[]>(ATTENDANCE_ENDPOINTS.GET_ALL, {
+      params: { intern_id: internId }
+    });
     return data;
   },
 

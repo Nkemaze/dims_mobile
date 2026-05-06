@@ -1,11 +1,12 @@
 import { create } from 'zustand';
-import { Intern } from '@/types/auth.types';
+import { User, Intern } from '@/types/auth.types';
 import { authService } from '@/services/authService';
 import { profileService } from '@/services/profileService';
 import { storage } from '@/utils/storage';
 
 interface AuthStore {
-  user: Intern | null;
+  user: User | null;
+  intern: Intern | null;
   token: string | null;
   isAuthenticated: boolean;
   isVerified: boolean;
@@ -23,6 +24,7 @@ interface AuthStore {
 
 export const useAuthStore = create<AuthStore>((set) => ({
   user: null,
+  intern: null,
   token: null,
   isAuthenticated: false,
   isVerified: true,
@@ -42,18 +44,34 @@ export const useAuthStore = create<AuthStore>((set) => ({
           return { success: true, isVerified: false, message: response.message };
         }
 
-        // Fetch complete user profile from v1 API
-        let completeUser = loginUser;
+        await storage.saveToken(token);
+
+        // Hydrate User and Intern profiles from DIMS API
+        let fullUser = loginUser;
+        let internInfo = null;
         try {
-          const profile = await profileService.getById(loginUser.id);
-          if (profile) completeUser = { ...loginUser, ...profile };
+          const userProfile = await profileService.getUserById(loginUser.id);
+          if (userProfile) fullUser = { ...loginUser, ...userProfile };
+
+          internInfo = await profileService.getInternByUserId(loginUser.id);
         } catch (profileError) {
-          console.warn('Failed to fetch full profile:', profileError);
+          console.warn('Failed to fetch full profiles:', profileError);
         }
 
-        await storage.saveToken(token);
-        await storage.saveUser(completeUser);
-        set({ token, user: completeUser, isAuthenticated: true, isVerified: true, isLoading: false });
+        await storage.saveUser(fullUser);
+        if (internInfo) {
+          // You might want to save intern info to storage too
+          // await storage.saveIntern(internInfo);
+        }
+
+        set({
+          token,
+          user: fullUser,
+          intern: internInfo,
+          isAuthenticated: true,
+          isVerified: true,
+          isLoading: false
+        });
         return { success: true, isVerified: true };
       } else {
         set({ isLoading: false, error: response.message || 'Login failed' });
@@ -79,15 +97,20 @@ export const useAuthStore = create<AuthStore>((set) => ({
       console.error('Logout error:', error);
     } finally {
       await storage.clearAll();
-      set({ user: null, token: null, isAuthenticated: false, isVerified: true });
+      set({ user: null, intern: null, token: null, isAuthenticated: false, isVerified: true });
     }
   },
 
   loadSession: async () => {
     const token = await storage.getToken();
-    const user = await storage.getUser<Intern>();
+    const user = await storage.getUser<User>();
     if (token && user) {
-      set({ token, user, isAuthenticated: true });
+      // Re-hydrate intern info if possible, or load from storage if you added it there
+      let intern = null;
+      try {
+        intern = await profileService.getInternByUserId(user.id);
+      } catch (e) {}
+      set({ token, user, intern, isAuthenticated: true });
     }
   },
 
