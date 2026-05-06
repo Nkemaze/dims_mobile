@@ -6,9 +6,14 @@ import { AppCard } from '@/components/common/AppCard';
 import { COLORS, FONTS, SPACING, RADIUS } from '@/constants/theme';
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
+import { useAuthStore } from '@/store/authStore';
 
 export default function DashboardScreen() {
   const router = useRouter();
+  const { user } = useAuthStore();
+
+  console.log(user);
+  console.log(user?.fullname);
 
   return (
     <SafeLayout>
@@ -23,7 +28,7 @@ export default function DashboardScreen() {
       <ScrollView contentContainerStyle={styles.content}>
         <View style={styles.welcomeSection}>
           <Text style={styles.welcomeText}>Welcome   back,</Text>
-          <Text style={styles.userName}>Intern</Text>
+          <Text style={styles.userName}>{user?.fullname}</Text>
           <Text style={styles.roleText}>Software Engineering Intern</Text>
         </View>
 

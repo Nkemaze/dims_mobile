@@ -2,7 +2,7 @@ export interface Intern {
   id: string;
   firstName?: string;
   lastName?: string;
-  name?: string;
+  fullname?: string;
   email: string;
   phone?: string;
   phonenumber?: string;
