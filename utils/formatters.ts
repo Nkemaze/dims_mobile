@@ -10,6 +10,15 @@ export const formatDate = (dateStr: string): string => {
   }
 };
 
+export const formatShortDate = (dateStr?: string): string => {
+  if (!dateStr) return 'N/A';
+  try {
+    return format(parseISO(dateStr), 'dd-MM-yy');
+  } catch {
+    return dateStr;
+  }
+};
+
 export const formatTime = (dateStr: string): string => {
   try {
     return format(parseISO(dateStr), 'hh:mm a');

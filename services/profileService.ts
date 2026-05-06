@@ -11,11 +11,14 @@ export const profileService = {
     return Array.isArray(data) ? data[0] : data;
   },
 
-  getInternByUserId: async (userId: string): Promise<Intern> => {
-    const { data } = await api.get<Intern[]>(PROFILE_ENDPOINTS.GET_INTERN, {
+  getInternByUserId: async (userId: string): Promise<Intern | null> => {
+    const { data } = await api.get(PROFILE_ENDPOINTS.GET_INTERN, {
       params: { user_id: userId }
     });
-    return data[0];
+    console.log('[profileService] getInternByUserId raw response:', JSON.stringify(data));
+    // Handle array or single object responses
+    const intern = Array.isArray(data) ? data[0] : data;
+    return intern ?? null;
   },
 
   updateUser: async (id: string, payload: Partial<User>): Promise<User> => {

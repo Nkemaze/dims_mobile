@@ -7,8 +7,13 @@ import { AppInput } from '@/components/common/AppInput';
 import { COLORS, RADIUS, SPACING, FONTS } from '@/constants/theme';
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
+import { useAuthStore } from '@/store/authStore';
+import { formatShortDate } from '@/utils/formatters';
 
 export default function ProfileScreen() {
+
+  const { user, intern, logout } = useAuthStore();
+
   const router = useRouter();
 
   const [deleteStep, setDeleteStep] = useState(0);
@@ -41,6 +46,8 @@ export default function ProfileScreen() {
     { title: 'About Us', icon: 'information-circle', color: COLORS.primary, url: 'https://www.digimarkconsulting.cm' },
   ];
 
+  console.log(intern)
+
   return (
     <SafeLayout>
       <ScreenHeader title="Profile" />
@@ -52,9 +59,9 @@ export default function ProfileScreen() {
             style={styles.avatar}
           />
         </View>
-        <Text style={styles.name}>Chukwuemeka Okonkwo</Text>
-        <Text style={styles.department}>Software Engineering</Text>
-        <Text style={styles.internSince}>Interns Since: 12/10/2024</Text>
+        <Text style={styles.name}> {intern?.fullname} </Text>
+        <Text style={styles.department}> {intern?.department} </Text>
+        <Text style={styles.internSince}>Interns Since: {formatShortDate(intern?.created_at)}</Text>
       </View>
 
       <View style={styles.menuContainer}>

@@ -35,6 +35,8 @@ export default function DashboardScreen() {
 
   const today = format(new Date(), 'EEEE').toUpperCase();
   const todaysSchedule = entries.filter(e => e.dayOfWeek === today);
+  // console.log(user?.id)
+  // console.log(intern)
 
   return (
     <SafeLayout>
@@ -49,7 +51,7 @@ export default function DashboardScreen() {
       <ScrollView contentContainerStyle={styles.content}>
         <View style={styles.welcomeSection}>
           <Text style={styles.welcomeText}>Welcome back,</Text>
-          <Text style={styles.userName}>{user?.name || 'Intern'}</Text>
+          <Text style={styles.userName}>{intern?.fullname || 'Intern'}</Text>
           <Text style={styles.roleText}>{intern?.department || 'Software Engineering Intern'}</Text>
         </View>
 

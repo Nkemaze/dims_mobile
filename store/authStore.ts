@@ -60,8 +60,7 @@ export const useAuthStore = create<AuthStore>((set) => ({
 
         await storage.saveUser(fullUser);
         if (internInfo) {
-          // You might want to save intern info to storage too
-          // await storage.saveIntern(internInfo);
+          await storage.saveIntern(internInfo);
         }
 
         set({
@@ -105,11 +104,16 @@ export const useAuthStore = create<AuthStore>((set) => ({
     const token = await storage.getToken();
     const user = await storage.getUser<User>();
     if (token && user) {
-      // Re-hydrate intern info if possible, or load from storage if you added it there
-      let intern = null;
-      try {
-        intern = await profileService.getInternByUserId(user.id);
-      } catch (e) {}
+      // Load intern from storage first (fast path); fall back to network if missing
+      let intern = await storage.getIntern<Intern>();
+      if (!intern) {
+        try {
+          intern = await profileService.getInternByUserId(user.id);
+          if (intern) await storage.saveIntern(intern);
+        } catch (e) {
+          console.warn('Failed to fetch intern on session load:', e);
+        }
+      }
       set({ token, user, intern, isAuthenticated: true });
     }
   },
