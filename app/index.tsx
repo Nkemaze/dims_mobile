@@ -1,8 +1,12 @@
 import { Redirect } from 'expo-router';
+import { useAuthStore } from '@/store/authStore';
 
 export default function Index() {
-  // TODO: Restore auth guard when backend is ready
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const { isAuthenticated } = useAuthStore();
+
+  if (isAuthenticated) {
+    return <Redirect href={'/(app)/dashboard' as any} />;
+  }
+
   return <Redirect href={'/(auth)/login' as any} />;
 }
-

@@ -1,5 +1,5 @@
-import React, { useEffect } from 'react';
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity, ActivityIndicator } from 'react-native';
+import React, { useEffect, useState, useCallback } from 'react';
+import { View, Text, StyleSheet, TouchableOpacity, ActivityIndicator } from 'react-native';
 import { SafeLayout } from '@/components/layout/SafeLayout';
 import { ScreenHeader } from '@/components/common/ScreenHeader';
 import { AppCard } from '@/components/common/AppCard';
@@ -14,20 +14,36 @@ import { format } from 'date-fns';
 
 export default function DashboardScreen() {
   const router = useRouter();
-  const { user, intern } = useAuthStore();
+  const { intern } = useAuthStore();
   const { tasks, fetchTasks, isLoading: tasksLoading } = useTaskStore();
   const { records, fetchAttendance, isLoading: attendanceLoading } = useAttendanceStore();
   const { entries, fetchTimetable } = useTimetableStore();
+  const [refreshing, setRefreshing] = useState(false);
+
+  const loadData = useCallback(async () => {
+    if (intern?.id) {
+      const promises: Promise<any>[] = [
+        fetchAttendance(intern.id),
+        fetchTimetable()
+      ];
+      if (intern.internshipposition_id) {
+        promises.push(fetchTasks(intern.internshipposition_id));
+      }
+      await Promise.all(promises);
+    } else {
+      await fetchTimetable();
+    }
+  }, [intern?.id, intern?.internshipposition_id, fetchAttendance, fetchTasks, fetchTimetable]);
 
   useEffect(() => {
-    if (intern?.id) {
-      fetchAttendance(intern.id);
-      if (intern.internshipposition_id) {
-        fetchTasks(intern.internshipposition_id);
-      }
-    }
-    fetchTimetable();
-  }, [intern?.id, intern?.internshipposition_id, fetchAttendance, fetchTasks, fetchTimetable]);
+    loadData();
+  }, [loadData]);
+
+  const handleRefresh = async () => {
+    setRefreshing(true);
+    await loadData();
+    setRefreshing(false);
+  };
 
   const daysPresent = records.filter(r => r.status === 'PRESENT').length;
   const tasksDone = tasks.filter(t => t.status === 'COMPLETED').length;
@@ -38,8 +54,10 @@ export default function DashboardScreen() {
   // console.log(user?.id)
   // console.log(intern)
 
+  const showStatsLoading = (attendanceLoading || tasksLoading) && !refreshing;
+
   return (
-    <SafeLayout>
+    <SafeLayout refreshing={refreshing} onRefresh={handleRefresh}>
       <ScreenHeader
         title="Dashboard"
         showProfile
@@ -48,7 +66,7 @@ export default function DashboardScreen() {
         onBellPress={() => router.push('/(app)/notifications')}
       />
 
-      <ScrollView contentContainerStyle={styles.content}>
+      <View style={styles.content}>
         <View style={styles.welcomeSection}>
           <Text style={styles.welcomeText}>Welcome back,</Text>
           <Text style={styles.userName}>{intern?.fullname || 'Intern'}</Text>
@@ -57,7 +75,7 @@ export default function DashboardScreen() {
 
         <View style={styles.statsGrid}>
           <AppCard style={styles.statCard}>
-            {attendanceLoading ? (
+            {showStatsLoading ? (
               <ActivityIndicator color={COLORS.primary} />
             ) : (
               <>
@@ -68,7 +86,7 @@ export default function DashboardScreen() {
             )}
           </AppCard>
           <AppCard style={styles.statCard}>
-            {tasksLoading ? (
+            {showStatsLoading ? (
               <ActivityIndicator color={COLORS.primary} />
             ) : (
               <>
@@ -142,8 +160,7 @@ export default function DashboardScreen() {
             </View>
           )}
         </AppCard>
-
-      </ScrollView>
+      </View>
     </SafeLayout>
   );
 }
@@ -159,7 +176,6 @@ const getStatusColor = (status: string) => {
 
 const styles = StyleSheet.create({
   content: {
-    padding: SPACING.md,
     paddingBottom: SPACING.xxl,
   },
   welcomeSection: {

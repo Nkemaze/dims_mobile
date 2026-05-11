@@ -55,7 +55,7 @@ export const useAuthStore = create<AuthStore>((set) => ({
 
           internInfo = await profileService.getInternByUserId(loginUser.id);
         } catch (profileError) {
-          console.warn('Failed to fetch full profiles:', profileError);
+          console.warn('Failed to fetch full profiles during login:', profileError);
         }
 
         await storage.saveUser(fullUser);
