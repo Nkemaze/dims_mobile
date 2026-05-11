@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { View, Text, StyleSheet, ScrollView, Platform, TouchableOpacity } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, Platform, TouchableOpacity, Alert } from 'react-native';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import { SafeLayout } from '@/components/layout/SafeLayout';
 import { ScreenHeader } from '@/components/common/ScreenHeader';
@@ -8,17 +8,25 @@ import { AppInput } from '@/components/common/AppInput';
 import { AppSelect } from '@/components/common/AppSelect';
 import { AppButton } from '@/components/common/AppButton';
 import { COLORS,RADIUS, SPACING } from '@/constants/theme';
+import { useAuthStore } from '@/store/authStore';
 import { useRouter } from 'expo-router';
 
 export default function RegisterInternScreen() {
   const [step, setStep] = useState(1);
   const [dateOfBirth, setDateOfBirth] = useState<Date | null>(null);
   const [showDatePicker, setShowDatePicker] = useState(false);
+  const [name, setName] = useState('');
+  const [email, setEmail] = useState('');
+  const [phone, setPhone] = useState('');
+  const [password, setPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
   const [department, setDepartment] = useState('');
   const [level, setLevel] = useState('');
   const [region, setRegion] = useState('');
   const [town, setTown] = useState('');
+
   const router = useRouter();
+  const { signup, isLoading, error, clearError } = useAuthStore();
 
   const DUMMY_DEPARTMENTS = [
     { label: 'Computer Science', value: 'CS' },
@@ -134,8 +142,46 @@ export default function RegisterInternScreen() {
     if (selectedDate) setDateOfBirth(selectedDate);
   };
 
-  const nextStep = () => setStep(step + 1);
+  const nextStep = () => {
+    if (step === 1 && !name) {
+      Alert.alert('Error', 'Please enter your full name');
+      return;
+    }
+    if (step === 4) {
+      if (!email || !phone) {
+        Alert.alert('Error', 'Please enter both email and phone number');
+        return;
+      }
+    }
+    setStep(step + 1);
+  };
   const prevStep = () => setStep(step - 1);
+
+  const handleSubmit = async () => {
+    if (!password || !confirmPassword) {
+      Alert.alert('Error', 'Please fill in both password fields');
+      return;
+    }
+    if (password !== confirmPassword) {
+      Alert.alert('Error', 'Passwords do not match');
+      return;
+    }
+
+    const result = await signup({
+      email,
+      password,
+      name,
+      phonenumber: phone
+    });
+
+    if (result.success) {
+      Alert.alert('Success', 'Account created successfully! Please verify your email.', [
+        { text: 'Verify Now', onPress: () => router.push({ pathname: '/(auth)/verify-code', params: { email } }) }
+      ]);
+    } else {
+      Alert.alert('Error', result.message);
+    }
+  };
 
   const renderStepIndicator = () => (
     <View style={styles.stepIndicator}>
@@ -162,10 +208,24 @@ export default function RegisterInternScreen() {
         <ScrollView contentContainerStyle={styles.container}>
           {renderStepIndicator()}
 
+          {error && (
+            <View style={styles.errorContainer}>
+              <Text style={styles.errorText}>{error}</Text>
+            </View>
+          )}
+
           {step === 1 && (
             <View style={styles.stepContainer}>
               <Text style={styles.stepTitle}>Step 1: Present yourself</Text>
-              <AppInput label="Full Name" placeholder="Enter your full name" />
+              <AppInput
+                label="Full Name"
+                placeholder="Enter your full name"
+                value={name}
+                onChangeText={(text) => {
+                  setName(text);
+                  if (error) clearError();
+                }}
+              />
               <TouchableOpacity onPress={() => setShowDatePicker(true)} activeOpacity={0.8}>
                 <View pointerEvents="none">
                   <AppInput 
@@ -245,8 +305,24 @@ export default function RegisterInternScreen() {
           {step === 4 && (
             <View style={styles.stepContainer}>
               <Text style={styles.stepTitle}>Step 4: Live your contact</Text>
-              <AppInput label="Email" placeholder="Enter your email" keyboardType="email-address" />
-              <AppInput label="Phone Number" placeholder="Enter your phone number" keyboardType="phone-pad" />
+              <AppInput
+                label="Email"
+                placeholder="Enter your email"
+                keyboardType="email-address"
+                autoCapitalize="none"
+                value={email}
+                onChangeText={(text) => {
+                  setEmail(text);
+                  if (error) clearError();
+                }}
+              />
+              <AppInput
+                label="Phone Number"
+                placeholder="Enter your phone number"
+                keyboardType="phone-pad"
+                value={phone}
+                onChangeText={setPhone}
+              />
               <View style={styles.btnRow}>
                 <AppButton title="Back" variant="outline" onPress={prevStep} style={styles.halfBtn} />
                 <AppButton title="Next Step" onPress={nextStep} style={styles.halfBtn} />
@@ -257,11 +333,28 @@ export default function RegisterInternScreen() {
           {step === 5 && (
             <View style={styles.stepContainer}>
               <Text style={styles.stepTitle}>Step 5: Create Password</Text>
-              <AppInput label="Password" placeholder="Create a password" isPassword />
-              <AppInput label="Confirm Password" placeholder="Confirm your password" isPassword />
+              <AppInput
+                label="Password"
+                placeholder="Create a password"
+                isPassword
+                value={password}
+                onChangeText={setPassword}
+              />
+              <AppInput
+                label="Confirm Password"
+                placeholder="Confirm your password"
+                isPassword
+                value={confirmPassword}
+                onChangeText={setConfirmPassword}
+              />
               <View style={styles.btnRow}>
                 <AppButton title="Back" variant="outline" onPress={prevStep} style={styles.halfBtn} />
-                <AppButton title="Submit" onPress={() => router.replace('/(auth)/login')} style={styles.halfBtn} />
+                <AppButton
+                  title="Submit"
+                  onPress={handleSubmit}
+                  style={styles.halfBtn}
+                  isLoading={isLoading}
+                />
               </View>
             </View>
           )}
@@ -302,6 +395,20 @@ const styles = StyleSheet.create({
     width: 8,
     backgroundColor: COLORS.border,
   },
+  errorContainer: {
+    backgroundColor: 'rgba(220, 53, 69, 0.1)',
+    padding: SPACING.sm,
+    borderRadius: RADIUS.sm,
+    marginBottom: SPACING.md,
+    borderWidth: 1,
+    borderColor: COLORS.error,
+    marginHorizontal: SPACING.lg,
+  },
+  errorText: {
+    color: COLORS.error,
+    fontSize: 14,
+    textAlign: 'center',
+  },
   stepContainer: {
     marginTop: SPACING.xl,
     gap: SPACING.sm,
@@ -310,6 +417,7 @@ const styles = StyleSheet.create({
     borderRadius: RADIUS.lg,
     borderWidth: 1,
     borderColor: 'rgba(255, 255, 255, 0.8)',
+    marginHorizontal: SPACING.lg,
   },
   stepTitle: {
     fontSize: 20,

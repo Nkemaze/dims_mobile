@@ -1,38 +1,61 @@
-// ─── App API Base URL ────────────────────────────────────────────────────────
-// Replace with your actual backend URL
-export const BASE_URL = process.env.EXPO_PUBLIC_API_BASE_URL || 'http://localhost:5000/api';
+// ─── App API Base URLs ──────────────────────────────────────────────────────
+export const API_BASE_URL = process.env.EXPO_PUBLIC_API_BASE_URL || 'https://api.digimarkconsulting.cm/api/v1';
+export const AUTH_BASE_URL = process.env.EXPO_PUBLIC_AUTH_BASE_URL || 'https://auth.digimarkconsulting.cm/api/auth';
+
+// ─── Database Names ──────────────────────────────────────────────────────────
+export const DIMS_DB = 'dims';
+
+// For backward compatibility if needed
+export const BASE_URL = API_BASE_URL;
 
 // ─── Auth Endpoints ──────────────────────────────────────────────────────────
 export const AUTH_ENDPOINTS = {
-  LOGIN: '/auth/login',
-  LOGOUT: '/auth/logout',
-  FORGOT_PASSWORD: '/auth/forgot-password',
-  ME: '/auth/me',
+  LOGIN: '/login',
+  LOGOUT: '/logout',
+  SIGNUP: '/signup',
+  SIGNUP_ADMIN: '/signupA',
+  VERIFY_EMAIL: '/verify-email',
+  CHECK_AUTH: '/check-auth',
+  FORGOT_PASSWORD: '/forgot-password',
+  RESET_PASSWORD: '/reset-password',
+  TOKEN_EXPIRE: '/token_expire',
+  GET_TOKEN_INFO: '/get_token_info',
+  VISITOR_TOKEN: '/visitor_token',
 };
 
-// ─── Intern Endpoints ────────────────────────────────────────────────────────
+// ─── Intern Endpoints (v1 CRUD) ──────────────────────────────────────────────
 export const TASK_ENDPOINTS = {
   GET_ALL: '/tasks',
   GET_BY_ID: (id: string) => `/tasks/${id}`,
-  UPDATE_STATUS: (id: string) => `/tasks/${id}/status`,
+  UPDATE: (id: string) => `/tasks/${id}`,
+};
+
+export const INTERN_ENDPOINTS = {
+  GET_ALL: '/interns',
+  GET_BY_ID: (id: string) => `/interns/${id}`,
+};
+
+export const USER_ENDPOINTS = {
+  GET_ALL: '/users',
+  GET_BY_ID: (id: string) => `/users/${id}`,
 };
 
 export const ATTENDANCE_ENDPOINTS = {
-  GET_ALL: '/attendance',
-  MARK: '/attendance/mark',
+  GET_ALL: '/attendances',
+  CREATE: '/attendances',
 };
 
 export const TIMETABLE_ENDPOINTS = {
-  GET_ALL: '/timetable',
+  GET_ALL: '/timetables',
+  GET_BY_ID: (id: string) => `/timetables/${id}`,
 };
 
 export const NOTIFICATION_ENDPOINTS = {
   GET_ALL: '/notifications',
-  MARK_READ: (id: string) => `/notifications/${id}/read`,
+  UPDATE: (id: string) => `/notifications/${id}`,
 };
 
 export const PROFILE_ENDPOINTS = {
-  GET: '/profile',
-  UPDATE: '/profile',
-  CHANGE_PASSWORD: '/profile/change-password',
+  GET_USER: '/users',
+  GET_INTERN: '/interns',
 };

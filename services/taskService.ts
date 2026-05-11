@@ -3,8 +3,10 @@ import { TASK_ENDPOINTS } from '@/constants/api';
 import { Task, UpdateTaskPayload } from '@/types/task.types';
 
 export const taskService = {
-  getAll: async (): Promise<Task[]> => {
-    const { data } = await api.get<Task[]>(TASK_ENDPOINTS.GET_ALL);
+  getByPositionId: async (positionId: string): Promise<Task[]> => {
+    const { data } = await api.get<Task[]>(TASK_ENDPOINTS.GET_ALL, {
+      params: { internshipposition_id: positionId }
+    });
     return data;
   },
 
@@ -14,7 +16,7 @@ export const taskService = {
   },
 
   updateStatus: async (id: string, payload: UpdateTaskPayload): Promise<Task> => {
-    const { data } = await api.patch<Task>(TASK_ENDPOINTS.UPDATE_STATUS(id), payload);
+    const { data } = await api.put<Task>(TASK_ENDPOINTS.UPDATE(id), payload);
     return data;
   },
 };

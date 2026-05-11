@@ -1,17 +1,61 @@
-import React from 'react';
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity } from 'react-native';
+import React, { useEffect, useState } from 'react';
+import { View, Text, StyleSheet, TouchableOpacity, ActivityIndicator } from 'react-native';
 import { SafeLayout } from '@/components/layout/SafeLayout';
 import { ScreenHeader } from '@/components/common/ScreenHeader';
 import { AppCard } from '@/components/common/AppCard';
 import { COLORS, FONTS, SPACING, RADIUS } from '@/constants/theme';
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
+import { useAuthStore } from '@/store/authStore';
+import { useTaskStore } from '@/store/taskStore';
+import { useAttendanceStore } from '@/store/attendanceStore';
+import { useTimetableStore } from '@/store/timetableStore';
+import { format } from 'date-fns';
 
 export default function DashboardScreen() {
   const router = useRouter();
+  const { user, intern } = useAuthStore();
+  const { tasks, fetchTasks, isLoading: tasksLoading } = useTaskStore();
+  const { records, fetchAttendance, isLoading: attendanceLoading } = useAttendanceStore();
+  const { entries, fetchTimetable } = useTimetableStore();
+  const [refreshing, setRefreshing] = useState(false);
+
+  const loadData = React.useCallback(async () => {
+    if (intern?.id) {
+      const promises = [
+        fetchAttendance(intern.id),
+        fetchTimetable()
+      ];
+      if (intern.internshipposition_id) {
+        promises.push(fetchTasks(intern.internshipposition_id));
+      }
+      await Promise.all(promises);
+    } else {
+      await fetchTimetable();
+    }
+  }, [intern?.id, intern?.internshipposition_id, fetchAttendance, fetchTimetable, fetchTasks]);
+
+  useEffect(() => {
+    loadData();
+  }, [intern?.id, intern?.internshipposition_id, loadData]);
+
+  const handleRefresh = async () => {
+    setRefreshing(true);
+    await loadData();
+    setRefreshing(false);
+  };
+
+  const daysPresent = records.filter(r => r.status === 'PRESENT').length;
+  const tasksDone = tasks.filter(t => t.status === 'COMPLETED').length;
+  const currentTask = tasks.find(t => t.status === 'IN_PROGRESS') || tasks[0];
+
+  const today = format(new Date(), 'EEEE').toUpperCase();
+  const todaysSchedule = entries.filter(e => e.dayOfWeek === today);
+
+  const showStatsLoading = (attendanceLoading || tasksLoading) && !refreshing;
 
   return (
-    <SafeLayout>
+    <SafeLayout refreshing={refreshing} onRefresh={handleRefresh}>
       <ScreenHeader
         title="Dashboard"
         showProfile
@@ -20,23 +64,35 @@ export default function DashboardScreen() {
         onBellPress={() => router.push('/(app)/notifications')}
       />
 
-      <ScrollView contentContainerStyle={styles.content}>
+      <View style={styles.content}>
         <View style={styles.welcomeSection}>
-          <Text style={styles.welcomeText}>Welcome   back,</Text>
-          <Text style={styles.userName}>Intern</Text>
-          <Text style={styles.roleText}>Software Engineering Intern</Text>
+          <Text style={styles.welcomeText}>Welcome back,</Text>
+          <Text style={styles.userName}>{user?.name || 'Intern'}</Text>
+          <Text style={styles.roleText}>{intern?.department || 'Software Engineering Intern'}</Text>
         </View>
 
         <View style={styles.statsGrid}>
           <AppCard style={styles.statCard}>
-            <Ionicons name="calendar-outline" size={24} color={COLORS.primary} />
-            <Text style={styles.statValue}>12</Text>
-            <Text style={styles.statLabel}>Days Present</Text>
+            {showStatsLoading ? (
+              <ActivityIndicator color={COLORS.primary} />
+            ) : (
+              <>
+                <Ionicons name="calendar-outline" size={24} color={COLORS.primary} />
+                <Text style={styles.statValue}>{daysPresent}</Text>
+                <Text style={styles.statLabel}>Days Present</Text>
+              </>
+            )}
           </AppCard>
           <AppCard style={styles.statCard}>
-            <Ionicons name="checkmark-circle-outline" size={24} color={COLORS.primary} />
-            <Text style={styles.statValue}>5</Text>
-            <Text style={styles.statLabel}>Tasks Done</Text>
+            {showStatsLoading ? (
+              <ActivityIndicator color={COLORS.primary} />
+            ) : (
+              <>
+                <Ionicons name="checkmark-circle-outline" size={24} color={COLORS.primary} />
+                <Text style={styles.statValue}>{tasksDone}</Text>
+                <Text style={styles.statLabel}>Tasks Done</Text>
+              </>
+            )}
           </AppCard>
         </View>
 
@@ -47,24 +103,34 @@ export default function DashboardScreen() {
           </TouchableOpacity>
         </View>
 
-        <AppCard style={styles.taskCard}>
-          <View style={styles.taskHeader}>
-            <Text style={styles.taskTitle}>Implement Authentication</Text>
-            <View style={styles.statusBadge}>
-              <Text style={styles.statusText}>In Progress</Text>
+        {currentTask ? (
+          <AppCard style={styles.taskCard}>
+            <View style={styles.taskHeader}>
+              <Text style={styles.taskTitle}>{currentTask.title}</Text>
+              <View style={[styles.statusBadge, { backgroundColor: getStatusColor(currentTask.status) + '22' }]}>
+                <Text style={[styles.statusText, { color: getStatusColor(currentTask.status) }]}>
+                  {currentTask.status.replace('_', ' ')}
+                </Text>
+              </View>
             </View>
-          </View>
-          <Text style={styles.taskDesc} numberOfLines={2}>
-            Build the login and forgot password screens using React Native and Expo Router.
-          </Text>
-          <View style={styles.taskFooter}>
-            <Ionicons name="time-outline" size={16} color={COLORS.textSecondary} />
-            <Text style={styles.dueDateText}>Due in 2 days</Text>
-          </View>
-        </AppCard>
+            <Text style={styles.taskDesc} numberOfLines={2}>
+              {currentTask.description}
+            </Text>
+            <View style={styles.taskFooter}>
+              <Ionicons name="time-outline" size={16} color={COLORS.textSecondary} />
+              <Text style={styles.dueDateText}>
+                Due: {currentTask.dueDate ? format(new Date(currentTask.dueDate), 'MMM dd, yyyy') : 'No date'}
+              </Text>
+            </View>
+          </AppCard>
+        ) : (
+          <AppCard style={styles.emptyCard}>
+            <Text style={styles.emptyText}>No tasks assigned yet.</Text>
+          </AppCard>
+        )}
 
         <View style={styles.sectionHeader}>
-          <Text style={styles.sectionTitle}>Today's Schedule</Text>
+          <Text style={styles.sectionTitle}>Today&apos;s Schedule</Text>
           <TouchableOpacity onPress={() => router.push('/(app)/timetable')}>
             <Text style={styles.seeAllText}>Full Schedule</Text>
           </TouchableOpacity>
@@ -73,37 +139,41 @@ export default function DashboardScreen() {
         <AppCard style={styles.scheduleCard}>
           <View style={styles.timelineLine} />
           
-          <View style={styles.scheduleItem}>
-            <View style={styles.timelineDot} />
-            <View style={styles.scheduleTime}>
-              <Text style={styles.timeText}>09:00 AM</Text>
+          {todaysSchedule.length > 0 ? (
+            todaysSchedule.map((item, index) => (
+              <View key={item.id} style={[styles.scheduleItem, index > 0 && { marginTop: SPACING.md }]}>
+                <View style={[styles.timelineDot, index > 0 && styles.timelineDotInactive]} />
+                <View style={styles.scheduleTime}>
+                  <Text style={styles.timeText}>{item.startTime}</Text>
+                </View>
+                <View style={styles.scheduleDetails}>
+                  <Text style={styles.scheduleTitle}>{item.title}</Text>
+                  <Text style={styles.scheduleSubtitle}>{item.location || item.description || 'No details'}</Text>
+                </View>
+              </View>
+            ))
+          ) : (
+            <View style={styles.emptySchedule}>
+              <Text style={styles.emptyText}>No events scheduled for today.</Text>
             </View>
-            <View style={styles.scheduleDetails}>
-              <Text style={styles.scheduleTitle}>Daily Standup</Text>
-              <Text style={styles.scheduleSubtitle}>Google Meet</Text>
-            </View>
-          </View>
-
-          <View style={[styles.scheduleItem, { marginTop: SPACING.md }]}>
-            <View style={[styles.timelineDot, styles.timelineDotInactive]} />
-            <View style={styles.scheduleTime}>
-              <Text style={styles.timeText}>11:30 AM</Text>
-            </View>
-            <View style={styles.scheduleDetails}>
-              <Text style={styles.scheduleTitle}>Code Review</Text>
-              <Text style={styles.scheduleSubtitle}>Engineering Team</Text>
-            </View>
-          </View>
+          )}
         </AppCard>
-
-      </ScrollView>
+      </View>
     </SafeLayout>
   );
 }
 
+const getStatusColor = (status: string) => {
+  switch (status) {
+    case 'COMPLETED': return '#2d865c';
+    case 'IN_PROGRESS': return '#e65100';
+    case 'OVERDUE': return '#dc3545';
+    default: return '#6c757d';
+  }
+};
+
 const styles = StyleSheet.create({
   content: {
-    padding: SPACING.md,
     paddingBottom: SPACING.xxl,
   },
   welcomeSection: {
@@ -134,6 +204,8 @@ const styles = StyleSheet.create({
     flex: 1,
     padding: SPACING.md,
     alignItems: 'center',
+    justifyContent: 'center',
+    minHeight: 100,
   },
   statValue: {
     fontSize: 24,
@@ -180,13 +252,11 @@ const styles = StyleSheet.create({
     marginRight: SPACING.sm,
   },
   statusBadge: {
-    backgroundColor: '#ffe0b2',
     paddingHorizontal: SPACING.sm,
     paddingVertical: 4,
     borderRadius: RADIUS.sm,
   },
   statusText: {
-    color: '#e65100',
     fontSize: FONTS.sizes.xs,
     fontWeight: '700',
   },
@@ -205,6 +275,15 @@ const styles = StyleSheet.create({
     color: COLORS.textSecondary,
     marginLeft: 4,
     fontWeight: '500',
+  },
+  emptyCard: {
+    padding: SPACING.xl,
+    alignItems: 'center',
+    marginBottom: SPACING.xl,
+  },
+  emptyText: {
+    color: COLORS.textSecondary,
+    fontSize: FONTS.sizes.sm,
   },
   scheduleCard: {
     padding: SPACING.md,
@@ -238,7 +317,7 @@ const styles = StyleSheet.create({
     borderColor: '#f5f5f5',
   },
   scheduleTime: {
-    width: 70,
+    width: 80,
   },
   timeText: {
     fontSize: FONTS.sizes.xs,
@@ -257,5 +336,9 @@ const styles = StyleSheet.create({
   scheduleSubtitle: {
     fontSize: FONTS.sizes.xs,
     color: COLORS.textSecondary,
+  },
+  emptySchedule: {
+    padding: SPACING.md,
+    alignItems: 'center',
   },
 });
