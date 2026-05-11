@@ -1,21 +1,21 @@
 export interface User {
   id: string;
-  name?: string;
+  fullname?: string;
   email: string;
   phonenumber?: string;
   role?: string;
+
 }
 
 export interface Intern {
   id: string;
   user_id: string;
-  firstName?: string;
-  lastName?: string;
+  fullname?: string;
   internshipposition_id?: string;
   department?: string;
   supervisorId?: string;
-  startDate?: string;
-  endDate?: string;
+  created_at?: string;
+  updated_at?: string;
   avatarUrl?: string;
 }
 

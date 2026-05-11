@@ -55,13 +55,12 @@ export const useAuthStore = create<AuthStore>((set) => ({
 
           internInfo = await profileService.getInternByUserId(loginUser.id);
         } catch (profileError) {
-          console.warn('Failed to fetch full profiles:', profileError);
+          console.warn('Failed to fetch full profiles during login:', profileError);
         }
 
         await storage.saveUser(fullUser);
         if (internInfo) {
-          // You might want to save intern info to storage too
-          // await storage.saveIntern(internInfo);
+          await storage.saveIntern(internInfo);
         }
 
         set({
@@ -105,11 +104,20 @@ export const useAuthStore = create<AuthStore>((set) => ({
     const token = await storage.getToken();
     const user = await storage.getUser<User>();
     if (token && user) {
-      // Re-hydrate intern info if possible, or load from storage if you added it there
-      let intern = null;
+      // Re-hydrate intern info from storage first
+      let intern = await storage.getIntern<Intern>();
+
+      // Always attempt to refresh intern info from network to ensure it's up to date
       try {
-        intern = await profileService.getInternByUserId(user.id);
-      } catch (e) {}
+        const freshIntern = await profileService.getInternByUserId(user.id);
+        if (freshIntern) {
+          intern = freshIntern;
+          await storage.saveIntern(intern);
+        }
+      } catch (e) {
+        console.warn('Failed to refresh intern info on session load:', e);
+      }
+
       set({ token, user, intern, isAuthenticated: true });
     }
   },

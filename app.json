@@ -4,7 +4,7 @@
     "slug": "dims",
     "version": "1.0.0",
     "orientation": "portrait",
-    "icon": "./assets/images/icon.png",
+    "icon": "./assets/images/dims.png",
     "scheme": "dims",
     "userInterfaceStyle": "automatic",
     "newArchEnabled": true,
@@ -13,7 +13,12 @@
     },
     "android": {
       "edgeToEdgeEnabled": true,
-      "predictiveBackGestureEnabled": false
+      "predictiveBackGestureEnabled": false,
+      "adaptiveIcon": {
+        "foregroundImage": "./assets/images/dims.png",
+        "backgroundColor": "#ffffff"
+      },
+      "package": "com.digimark.dims"
     },
     "web": {
       "output": "static",
@@ -24,13 +29,10 @@
       [
         "expo-splash-screen",
         {
-          "image": "./assets/images/splash-icon.png",
-          "imageWidth": 200,
+          "image": "./assets/images/dims.png",
+          "imageWidth": 250,
           "resizeMode": "contain",
-          "backgroundColor": "#ffffff",
-          "dark": {
-            "backgroundColor": "#000000"
-          }
+          "backgroundColor": "#ffffff"
         }
       ],
       "@react-native-community/datetimepicker"
@@ -38,6 +40,12 @@
     "experiments": {
       "typedRoutes": true,
       "reactCompiler": true
+    },
+    "extra": {
+      "router": {},
+      "eas": {
+        "projectId": "e593bf30-bcb7-46c0-807b-cbb3404c9a70"
+      }
     }
   }
 }

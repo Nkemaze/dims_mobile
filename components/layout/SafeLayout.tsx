@@ -1,5 +1,5 @@
 import React from 'react';
-import { View, ScrollView, StyleSheet, ViewStyle } from 'react-native';
+import { View, ScrollView, StyleSheet, ViewStyle, RefreshControl } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { COLORS, SPACING } from '@/constants/theme';
 
@@ -8,6 +8,8 @@ interface SafeLayoutProps {
   scrollable?: boolean;
   style?: ViewStyle;
   contentStyle?: ViewStyle;
+  onRefresh?: () => void;
+  refreshing?: boolean;
 }
 
 export const SafeLayout: React.FC<SafeLayoutProps> = ({
@@ -15,6 +17,8 @@ export const SafeLayout: React.FC<SafeLayoutProps> = ({
   scrollable = true,
   style,
   contentStyle,
+  onRefresh,
+  refreshing = false,
 }) => {
   return (
     <SafeAreaView style={[styles.safe, style]}>
@@ -23,6 +27,16 @@ export const SafeLayout: React.FC<SafeLayoutProps> = ({
           contentContainerStyle={[styles.content, contentStyle]}
           showsVerticalScrollIndicator={false}
           keyboardShouldPersistTaps="handled"
+          refreshControl={
+            onRefresh ? (
+              <RefreshControl
+                refreshing={refreshing}
+                onRefresh={onRefresh}
+                colors={[COLORS.primary]}
+                tintColor={COLORS.primary}
+              />
+            ) : undefined
+          }
         >
           {children}
         </ScrollView>
