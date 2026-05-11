@@ -51,6 +51,8 @@ export default function DashboardScreen() {
 
   const today = format(new Date(), 'EEEE').toUpperCase();
   const todaysSchedule = entries.filter(e => e.dayOfWeek === today);
+  // console.log(user?.id)
+  // console.log(intern)
 
   const showStatsLoading = (attendanceLoading || tasksLoading) && !refreshing;
 

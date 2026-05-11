@@ -46,16 +46,16 @@ export default function LoginScreen() {
         result.message || 'Your account is not verified. Please check your email for the verification code.',
         [
           { text: 'Cancel', onPress: () => setModalConfig(prev => ({ ...prev, visible: false })), variant: 'outline' },
-          {
-            text: 'Verify Now',
+          { 
+            text: 'Verify Now', 
             onPress: () => {
               setModalConfig(prev => ({ ...prev, visible: false }));
               router.push({
                 pathname: '/(auth)/verify-code',
                 params: { email }
               });
-            },
-            variant: 'primary'
+            }, 
+            variant: 'primary' 
           }
         ]
       );

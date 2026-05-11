@@ -104,20 +104,16 @@ export const useAuthStore = create<AuthStore>((set) => ({
     const token = await storage.getToken();
     const user = await storage.getUser<User>();
     if (token && user) {
-      // Re-hydrate intern info from storage first
+      // Load intern from storage first (fast path); fall back to network if missing
       let intern = await storage.getIntern<Intern>();
-
-      // Always attempt to refresh intern info from network to ensure it's up to date
-      try {
-        const freshIntern = await profileService.getInternByUserId(user.id);
-        if (freshIntern) {
-          intern = freshIntern;
-          await storage.saveIntern(intern);
+      if (!intern) {
+        try {
+          intern = await profileService.getInternByUserId(user.id);
+          if (intern) await storage.saveIntern(intern);
+        } catch (e) {
+          console.warn('Failed to fetch intern on session load:', e);
         }
-      } catch (e) {
-        console.warn('Failed to refresh intern info on session load:', e);
       }
-
       set({ token, user, intern, isAuthenticated: true });
     }
   },
@@ -127,9 +123,9 @@ export const useAuthStore = create<AuthStore>((set) => ({
   forgotPassword: async (email: string) => {
     set({ isLoading: true, error: null });
     try {
-      await authService.forgotPassword(email);
+      const response = await authService.forgotPassword(email);
       set({ isLoading: false });
-      return { success: true, message: 'Password reset code sent to your email.' };
+      return { success: true, message: response?.message || 'Password reset code sent to your email.' };
     } catch (err: any) {
       const errorMessage = err.response?.data?.message || err.message || 'Failed to send reset code';
       set({ isLoading: false, error: errorMessage });
@@ -140,9 +136,9 @@ export const useAuthStore = create<AuthStore>((set) => ({
   resetPassword: async (token: string, password: string) => {
     set({ isLoading: true, error: null });
     try {
-      await authService.resetPassword(token, password);
+      const response = await authService.resetPassword(token, password);
       set({ isLoading: false });
-      return { success: true, message: 'Password reset successful.' };
+      return { success: true, message: response?.message || 'Password reset successful.' };
     } catch (err: any) {
       const errorMessage = err.response?.data?.message || err.message || 'Failed to reset password';
       set({ isLoading: false, error: errorMessage });

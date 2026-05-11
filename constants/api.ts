@@ -57,5 +57,5 @@ export const NOTIFICATION_ENDPOINTS = {
 
 export const PROFILE_ENDPOINTS = {
   GET_USER: '/users',
-  GET_INTERN: '/interns',
+  GET_INTERN: '/v1/interns',
 };
