@@ -3,9 +3,10 @@ import { TASK_ENDPOINTS } from '@/constants/api';
 import { Task, UpdateTaskPayload } from '@/types/task.types';
 
 export const taskService = {
-  getByPositionId: async (positionId: string): Promise<Task[]> => {
+  getByPositionId: async (positionId?: string): Promise<Task[]> => {
     const { data } = await api.get<Task[]>(TASK_ENDPOINTS.GET_ALL, {
-      params: { internshipposition_id: positionId }
+      // When positionId is undefined Axios omits the param → returns all tasks
+      params: positionId ? { internshipposition_id: positionId } : undefined,
     });
     return data;
   },

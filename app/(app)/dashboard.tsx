@@ -14,7 +14,7 @@ import { format } from 'date-fns';
 
 export default function DashboardScreen() {
   const router = useRouter();
-  const { intern } = useAuthStore();
+  const { intern, user, ensureIntern } = useAuthStore();
   const { tasks, fetchTasks, isLoading: tasksLoading } = useTaskStore();
   const { records, fetchAttendance, isLoading: attendanceLoading } = useAttendanceStore();
   const { entries, fetchTimetable } = useTimetableStore();
@@ -22,14 +22,14 @@ export default function DashboardScreen() {
 
   const loadData = useCallback(async () => {
     if (intern?.id) {
-      const promises: Promise<any>[] = [
+      // Always fetch all three in parallel.
+      // fetchTasks accepts an optional positionId — when present it filters by position,
+      // when absent (intern has no position yet) it returns all tasks, same as the tasks screen.
+      await Promise.all([
         fetchAttendance(intern.id),
-        fetchTimetable()
-      ];
-      if (intern.internshipposition_id) {
-        promises.push(fetchTasks(intern.internshipposition_id));
-      }
-      await Promise.all(promises);
+        fetchTimetable(),
+        fetchTasks(intern.internshipposition_id),
+      ]);
     } else {
       await fetchTimetable();
     }
@@ -39,8 +39,18 @@ export default function DashboardScreen() {
     loadData();
   }, [loadData]);
 
+  // If intern wasn't fetched during login (network hiccup etc.), retry here.
+  // Once intern lands in the store, loadData rebuild triggers the data fetch automatically.
+  useEffect(() => {
+    if (!intern && user) {
+      ensureIntern();
+    }
+  }, [intern, user, ensureIntern]);
+
   const handleRefresh = async () => {
     setRefreshing(true);
+    // Re-fetch intern first in case it was missing, then load all screen data.
+    await ensureIntern();
     await loadData();
     setRefreshing(false);
   };

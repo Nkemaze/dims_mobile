@@ -16,13 +16,14 @@ interface AuthStore {
   login: (email: string, password: string) => Promise<{ success: boolean; isVerified?: boolean; message?: string }>;
   logout: () => Promise<void>;
   loadSession: () => Promise<void>;
+  ensureIntern: () => Promise<void>;
   clearError: () => void;
   forgotPassword: (email: string) => Promise<{ success: boolean; message: string }>;
   resetPassword: (token: string, password: string) => Promise<{ success: boolean; message: string }>;
   verifyEmail: (code: string) => Promise<{ success: boolean; message: string }>;
 }
 
-export const useAuthStore = create<AuthStore>((set) => ({
+export const useAuthStore = create<AuthStore>((set, get) => ({
   user: null,
   intern: null,
   token: null,
@@ -115,6 +116,25 @@ export const useAuthStore = create<AuthStore>((set) => ({
         }
       }
       set({ token, user, intern, isAuthenticated: true });
+    }
+  },
+
+  /**
+   * Fetches and persists the intern profile if it is missing from the store.
+   * Safe to call multiple times — exits immediately if intern is already loaded
+   * or if no authenticated user is available.
+   */
+  ensureIntern: async () => {
+    const { intern, user } = get();
+    if (intern || !user) return;
+    try {
+      const fetchedIntern = await profileService.getInternByUserId(user.id);
+      if (fetchedIntern) {
+        await storage.saveIntern(fetchedIntern);
+        set({ intern: fetchedIntern });
+      }
+    } catch (e) {
+      console.warn('[authStore] ensureIntern failed:', e);
     }
   },
 
