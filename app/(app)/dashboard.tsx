@@ -78,7 +78,7 @@ export default function DashboardScreen() {
 
       <View style={styles.content}>
         <View style={styles.welcomeSection}>
-          <Text style={styles.welcomeText}>Welcome back,</Text>
+          <Text style={styles.welcomeText}>Welcom back,</Text>
           <Text style={styles.userName}>{intern?.fullname || 'Intern'}</Text>
           <Text style={styles.roleText}>{intern?.department || 'Software Engineering Intern'}</Text>
         </View>

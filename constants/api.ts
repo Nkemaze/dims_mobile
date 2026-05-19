@@ -57,5 +57,24 @@ export const NOTIFICATION_ENDPOINTS = {
 
 export const PROFILE_ENDPOINTS = {
   GET_USER: '/users',
-  GET_INTERN: '/interns',  // base URL already contains /api/v1 — no prefix needed
+  GET_INTERN: '/interns',
+};
+
+export const INTERNSHIP_APPLICATION_ENDPOINTS = {
+  GET_INTERN_APPLICATIONS: '/internshipapplications/interns',
+};
+
+export const INTERNSHIP_POSITION_ENDPOINTS = {
+  GET_ALL: '/internshippositions',
+};
+
+export const SUPERVISOR_ENDPOINTS = {
+  GET_BY_ID: (id: string) => `/supervisors/${id}`,
+};
+
+export const QUIZ_ENDPOINTS = {
+  GET_BY_TASK: '/quizes',
+  GET_ANSWERS: '/quiz_answers',
+  GET_QUESTIONS: '/questions',
+  SUBMIT_ANSWERS_MANY: '/quiz_answers/many',
 };

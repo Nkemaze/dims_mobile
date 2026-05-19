@@ -9,7 +9,10 @@ export interface Task {
   assignedAt: string;
   internId: string;
   supervisorId: string;
+  internshipposition_id?: string;
+  assigned_by?: string;
 }
+
 
 export interface UpdateTaskPayload {
   status: TaskStatus;

@@ -12,7 +12,7 @@ import { COLORS, FONTS, RADIUS, SPACING } from '@/constants/theme';
 import { Ionicons } from '@expo/vector-icons';
 
 export default function TasksScreen() {
-  const { tasks, isLoading } = useTasks();
+  const { tasks, isLoading, hasNoApprovedPositions, approvedPositions } = useTasks();
   const router = useRouter();
   const [activeFilter, setActiveFilter] = useState('All');
   const [showSearch, setShowSearch] = useState(false);
@@ -24,7 +24,47 @@ export default function TasksScreen() {
 
   if (isLoading) return <LoadingSpinner fullScreen />;
 
-  const filters = ['All', 'Accepted Position 1', 'Accepted Position 2'];
+  if (hasNoApprovedPositions) {
+    return (
+      <SafeLayout scrollable={false}>
+        <ScreenHeader title="Tasks" 
+          showSearch={false} 
+          showBell 
+          onBellPress={() => router.push('/(app)/notifications')} 
+        />
+        <EmptyState
+          icon="alert-circle-outline"
+          title="Action Required"
+          message="You do not have any approved internship positions. Please contact your supervisor to get your application approved."
+        />
+      </SafeLayout>
+    );
+  }
+
+  const filters = [
+    'All',
+    ...(approvedPositions
+      ?.filter((p) => p.name !== 'Unknown Position')
+      .map((p) => p.name) || []),
+  ];
+
+  // Apply active filter and optionally search query
+  const displayedTasks = tasks.filter(task => {
+    // position filter
+    let matchesPosition = true;
+    if (activeFilter !== 'All') {
+      const targetPos = approvedPositions?.find(p => p.name === activeFilter);
+      if (targetPos) {
+        matchesPosition = task.internshipposition_id === targetPos.id;
+      }
+    }
+    // search filter
+    let matchesSearch = true;
+    if (searchQuery.trim()) {
+      matchesSearch = task.title.toLowerCase().includes(searchQuery.toLowerCase());
+    }
+    return matchesPosition && matchesSearch;
+  });
 
   return (
     <SafeLayout scrollable={false}>
@@ -47,37 +87,39 @@ export default function TasksScreen() {
         </View>
       )}
 
-      <View style={styles.filterContainer}>
-        <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.filterBar}>
-          {filters.map((filter) => (
-            <TouchableOpacity
-              key={filter}
-              style={[
-                styles.filterBtn,
-                activeFilter === filter ? styles.filterBtnActive : styles.filterBtnInactive
-              ]}
-              onPress={() => setActiveFilter(filter)}
-            >
-              <Text style={[
-                styles.filterText,
-                activeFilter === filter ? styles.filterTextActive : styles.filterTextInactive
-              ]}>
-                {filter}
-              </Text>
-            </TouchableOpacity>
-          ))}
-        </ScrollView>
-      </View>
+      {filters.length > 1 && (
+        <View style={styles.filterContainer}>
+          <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.filterBar}>
+            {filters.map((filter) => (
+              <TouchableOpacity
+                key={filter}
+                style={[
+                  styles.filterBtn,
+                  activeFilter === filter ? styles.filterBtnActive : styles.filterBtnInactive
+                ]}
+                onPress={() => setActiveFilter(filter)}
+              >
+                <Text style={[
+                  styles.filterText,
+                  activeFilter === filter ? styles.filterTextActive : styles.filterTextInactive
+                ]}>
+                  {filter}
+                </Text>
+              </TouchableOpacity>
+            ))}
+          </ScrollView>
+        </View>
+      )}
 
       <FlatList
-        data={tasks}
+        data={displayedTasks}
         keyExtractor={(item) => item.id}
         renderItem={({ item }) => <TaskCard task={item} onPress={handlePress} />}
         ListEmptyComponent={
           <EmptyState
             icon="checkmark-circle-outline"
             title="No tasks assigned"
-            message="Your supervisor hasn't assigned any tasks yet."
+            message="No tasks match the selected filter."
           />
         }
         showsVerticalScrollIndicator={false}
