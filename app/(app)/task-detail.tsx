@@ -11,6 +11,7 @@ import { supervisorService } from '@/services/supervisorService';
 import { quizService } from '@/services/quizService';
 import { Supervisor } from '@/types/supervisor.types';
 import { Quiz } from '@/types/quiz.types';
+import { Task, TaskStatus } from '@/types/task.types';
 
 export default function TaskDetailScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
@@ -18,6 +19,7 @@ export default function TaskDetailScreen() {
   
   const { user } = useAuthStore();
   const selectedTask = useTaskStore((s) => s.selectedTask);
+  const updateTaskStatus = useTaskStore((s) => s.updateTaskStatus);
   const isLoadingTask = useTaskStore((s) => s.isLoading);
   const fetchTaskById = useTaskStore((s) => s.fetchTaskById);
 
@@ -48,10 +50,13 @@ export default function TaskDetailScreen() {
       setSupervisor(supervisorData);
 
       // Check quiz answers if quiz exists
+      let answered = false;
       if (fetchedQuiz && user?.id) {
         const answers = await quizService.getQuizAnswers(fetchedQuiz.id);
-        const answered = answers.some(a => a.user_id === user.id);
+        answered = answers.some(a => a.user_id === user.id);
         setHasAnswered(answered);
+
+        // Removed auto-correct backend loop because task status is for supervisor not intern
       }
 
       setIsLoadingExtra(false);
@@ -109,13 +114,9 @@ export default function TaskDetailScreen() {
 
           <Text style={[styles.boldText, { marginTop: SPACING.lg }]}>Status:</Text>
           <View style={{ alignSelf: 'flex-start', marginTop: SPACING.xs }}>
-            {!isLoadingExtra ? (
-              <View style={[styles.statusBadge, { backgroundColor: hasAnswered ? '#28a745' : '#ffc107' }]}>
-                <Text style={styles.statusBadgeText}>{hasAnswered ? 'Submitted' : 'Pending'}</Text>
-              </View>
-            ) : (
-              <ActivityIndicator size="small" color={COLORS.primary} />
-            )}
+             <View style={[styles.statusBadge, { backgroundColor: hasAnswered ? '#28a745' : '#ffc107' }]}>
+                <Text style={styles.statusBadgeText}>{hasAnswered ? 'Completed' : 'Pending'}</Text>
+             </View>
           </View>
 
           {/* Supervisor Card */}
@@ -138,15 +139,23 @@ export default function TaskDetailScreen() {
           )}
 
           {/* Proceed Button */}
-          <TouchableOpacity 
-            style={styles.proceedBtn} 
-            onPress={() => {
-                 router.push(`/(app)/quizzes?id=${id}`);
-            }}
-          >
-            <Text style={styles.proceedBtnText}>Proceed To Quiz</Text>
-            <Ionicons name="arrow-forward" size={18} color={COLORS.white} style={{ marginLeft: 8 }} />
-          </TouchableOpacity>
+          {hasAnswered ? (
+             <View style={[styles.proceedBtn, { backgroundColor: COLORS.success }]}>
+                <Text style={styles.proceedBtnText}>Quiz Completed</Text>
+                <Ionicons name="checkmark-circle" size={18} color={COLORS.white} style={{ marginLeft: 8 }} />
+             </View>
+          ) : (
+            <TouchableOpacity 
+              style={styles.proceedBtn} 
+              onPress={() => {
+                  const urlId = Array.isArray(id) ? id[0] : id;
+                  router.push(`/(app)/quizzes?id=${urlId}`);
+              }}
+            >
+              <Text style={styles.proceedBtnText}>Proceed To Quiz</Text>
+              <Ionicons name="arrow-forward" size={18} color={COLORS.white} style={{ marginLeft: 8 }} />
+            </TouchableOpacity>
+          )}
         </View>
       </ScrollView>
     </View>

@@ -53,6 +53,26 @@ export const quizService = {
     }
   },
 
+  getAllQuizzes: async (): Promise<Quiz[]> => {
+    try {
+      const { data } = await api.get<Quiz[]>(QUIZ_ENDPOINTS.GET_BY_TASK);
+      return Array.isArray(data) ? data : [];
+    } catch (error) {
+      return [];
+    }
+  },
+
+  getQuizAnswersByUser: async (userId: string): Promise<QuizAnswer[]> => {
+    try {
+      const { data } = await api.get<QuizAnswer[]>(QUIZ_ENDPOINTS.GET_ANSWERS, {
+        params: { user_id: userId },
+      });
+      return Array.isArray(data) ? data : [];
+    } catch (error) {
+      return [];
+    }
+  },
+
   submitQuizAnswers: async (payload: QuizSubmission[]): Promise<void> => {
     // If it fails, we deliberately let the error bubble up so the UI can catch it and display the warning alert correctly
     await api.post(QUIZ_ENDPOINTS.SUBMIT_ANSWERS_MANY, payload);

@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity, ActivityIndicator, TextInput, Alert } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity, ActivityIndicator, TextInput, Modal, Alert } from 'react-native';
+import { useTaskStore } from '@/store/taskStore';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { SafeLayout } from '@/components/layout/SafeLayout';
 import { ScreenHeader } from '@/components/common/ScreenHeader';
@@ -7,7 +8,7 @@ import { COLORS, FONTS, RADIUS, SPACING } from '@/constants/theme';
 import { quizService } from '@/services/quizService';
 import { useAuthStore } from '@/store/authStore';
 import { Question, QuizSubmission } from '@/types/quiz.types';
-import { Ionicons } from '@expo/vector-icons';
+import { TaskStatus } from '@/types/task.types';
 
 export default function QuizTakingScreen() {
   const { id: quizId } = useLocalSearchParams<{ id: string }>();
@@ -39,44 +40,69 @@ export default function QuizTakingScreen() {
     }));
   };
 
+  const [alertConfig, setAlertConfig] = useState<{
+    visible: boolean;
+    title: string;
+    message: string;
+    type: 'warning' | 'success' | 'error';
+    showCancel?: boolean;
+    onConfirm?: () => void;
+  }>({ visible: false, title: '', message: '', type: 'warning' });
+
+  const showAlert = (title: string, message: string, type: 'warning' | 'success' | 'error', onConfirm?: () => void, showCancel = false) => {
+    setAlertConfig({ visible: true, title, message, type, showCancel, onConfirm });
+  };
+
+  const closeAlert = () => {
+    setAlertConfig(prev => ({ ...prev, visible: false }));
+  };
+
   const submitQuiz = async () => {
-    Alert.alert(
+    showAlert(
       "Confirm Submission",
       "Are you sure you want to submit your answers?",
-      [
-        { text: "No", style: "cancel" },
-        {
-          text: "Yes",
-          onPress: async () => {
-            if (!user?.id || !quizId) return;
-            const safeQuizId = Array.isArray(quizId) ? quizId[0] : quizId;
-            setIsSubmitting(true);
-            
-            const payload: QuizSubmission[] = questions.map(q => ({
-              user_id: user.id,
-              quiz_id: safeQuizId,
-              question_id: q.id,
-              answer: responses[q.id] || '',
-            }));
+      "warning",
+      async () => {
+        closeAlert();
+        if (!user?.id || !quizId) return;
+        const safeQuizId = Array.isArray(quizId) ? quizId[0] : quizId;
+        setIsSubmitting(true);
+        
+        const payload: QuizSubmission[] = questions.map(q => ({
+          user_id: user.id,
+          quiz_id: safeQuizId,
+          question_id: q.id,
+          answer: responses[q.id] || '',
+        }));
 
-            try {
-              await quizService.submitQuizAnswers(payload);
-              setIsSubmitting(false);
-              Alert.alert(
-                "Submission Successful",
-                "Your quiz has been submitted successfully!",
-                [{ text: "OK", onPress: () => router.push('/(app)/tasks') }]
-              );
-            } catch (error) {
-              setIsSubmitting(false);
-              Alert.alert(
-                "Submission Error",
-                "Failed to submit quiz. Please make sure you are submitting for the first time. If you have already submitted, you can view your results in the task details."
-              );
-            }
-          }
+        try {
+          await quizService.submitQuizAnswers(payload);
+          // Removed manual task status update because intern status dynamically references answers
+          const { markTaskCompletedLocally, selectedTask } = useTaskStore.getState();
+          if (selectedTask?.id) markTaskCompletedLocally(selectedTask.id);
+          
+          setIsSubmitting(false);
+          setTimeout(() => {
+            showAlert(
+              "Submission Successful",
+              "Your quiz has been submitted successfully!",
+              "success",
+              () => { closeAlert(); router.push('/(app)/tasks'); }
+            );
+          }, 300);
+        } catch (error) {
+          setIsSubmitting(false);
+          setTimeout(() => {
+            showAlert(
+              "Submission Error",
+              "Failed to submit quiz. Please make sure you are submitting for the first time.",
+              "error",
+              () => closeAlert()
+            );
+          }, 300);
         }
-      ]
+      },
+      true
     );
   };
 
@@ -165,6 +191,43 @@ export default function QuizTakingScreen() {
           </View>
         </ScrollView>
       )}
+
+      {/* Custom Sweet Alert Modal */}
+      <Modal transparent visible={alertConfig.visible} animationType="fade">
+        <View style={styles.modalOverlay}>
+          <View style={styles.modalContent}>
+            {/* Modal Icon Placeholder based on Type */}
+            <View style={[styles.modalIconContainer, 
+              alertConfig.type === 'success' ? { borderColor: '#a5dc86' } :
+              alertConfig.type === 'error' ? { borderColor: '#f27474' } :
+              { borderColor: '#f8bb86' }
+            ]}>
+              <Text style={[styles.modalIconText, 
+                alertConfig.type === 'success' ? { color: '#a5dc86' } :
+                alertConfig.type === 'error' ? { color: '#f27474' } :
+                { color: '#f8bb86' }
+              ]}>
+                {alertConfig.type === 'success' ? '✓' : alertConfig.type === 'error' ? '✕' : '!'}
+              </Text>
+            </View>
+
+            <Text style={styles.modalTitle}>{alertConfig.title}</Text>
+            <Text style={styles.modalMessage}>{alertConfig.message}</Text>
+            
+            <View style={styles.modalActions}>
+              {alertConfig.showCancel && (
+                <TouchableOpacity style={[styles.modalBtn, { backgroundColor: '#6c757d' }]} onPress={closeAlert}>
+                  <Text style={styles.modalBtnText}>No</Text>
+                </TouchableOpacity>
+              )}
+              <TouchableOpacity style={[styles.modalBtn, { backgroundColor: '#80002a' }]} onPress={() => { alertConfig.onConfirm ? alertConfig.onConfirm() : closeAlert() }}>
+                <Text style={styles.modalBtnText}>{alertConfig.showCancel ? 'Yes' : 'OK'}</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </View>
+      </Modal>
+
     </SafeLayout>
   );
 }
@@ -278,5 +341,63 @@ const styles = StyleSheet.create({
     color: COLORS.white,
     fontWeight: 'bold',
     fontSize: FONTS.sizes.md,
+  },
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0,0,0,0.5)',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  modalContent: {
+    width: '85%',
+    backgroundColor: COLORS.white,
+    borderRadius: RADIUS.md,
+    padding: SPACING.xl,
+    alignItems: 'center',
+  },
+  modalIconContainer: {
+    width: 60,
+    height: 60,
+    borderRadius: 30,
+    borderWidth: 3,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginBottom: SPACING.md,
+  },
+  modalIconText: {
+    fontSize: 32,
+    fontWeight: 'bold',
+  },
+  modalTitle: {
+    fontSize: FONTS.sizes.lg,
+    fontWeight: 'bold',
+    color: COLORS.textPrimary,
+    marginBottom: SPACING.sm,
+    textAlign: 'center',
+  },
+  modalMessage: {
+    fontSize: FONTS.sizes.sm,
+    color: COLORS.textSecondary,
+    textAlign: 'center',
+    marginBottom: SPACING.xl,
+    lineHeight: 20,
+  },
+  modalActions: {
+    flexDirection: 'row',
+    justifyContent: 'center',
+    width: '100%',
+    gap: SPACING.md,
+  },
+  modalBtn: {
+    paddingVertical: 12,
+    paddingHorizontal: 24,
+    borderRadius: RADIUS.sm,
+    minWidth: 100,
+    alignItems: 'center',
+  },
+  modalBtnText: {
+    color: COLORS.white,
+    fontSize: FONTS.sizes.sm,
+    fontWeight: 'bold',
   },
 });

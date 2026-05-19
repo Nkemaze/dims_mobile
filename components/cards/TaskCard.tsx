@@ -5,14 +5,17 @@ import { Task } from '@/types/task.types';
 import { COLORS, RADIUS, SPACING, FONTS } from '@/constants/theme';
 import { AppCard } from '../common/AppCard';
 
+import { TASK_STATUS_COLORS, TASK_STATUS_LABELS } from '@/constants/taskStatus';
+
 interface TaskCardProps {
   task: Task;
+  isCompleted?: boolean;
   onPress: (task: Task) => void;
 }
 
-export const TaskCard: React.FC<TaskCardProps> = ({ task, onPress }) => {
-  const statusColor = task.status === 'COMPLETED' ? COLORS.success : COLORS.warning;
-  const statusLabel = task.status === 'COMPLETED' ? 'Submitted' : 'Pending';
+export const TaskCard: React.FC<TaskCardProps> = ({ task, isCompleted, onPress }) => {
+  const statusColor = isCompleted ? COLORS.success : (TASK_STATUS_COLORS[task.status as any] || COLORS.warning);
+  const statusLabel = isCompleted ? 'Completed' : (TASK_STATUS_LABELS[task.status as any] || task.status || 'Pending');
 
   return (
     <TouchableOpacity onPress={() => onPress(task)} activeOpacity={0.8}>

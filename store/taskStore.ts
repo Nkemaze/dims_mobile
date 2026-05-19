@@ -2,6 +2,7 @@ import { create } from 'zustand';
 import { Task, TaskStatus } from '@/types/task.types';
 import { taskService } from '@/services/taskService';
 import { internshipService } from '@/services/internshipService';
+import { quizService } from '@/services/quizService';
 import { ApprovedPosition } from '@/types/internship.types';
 
 interface TaskStore {
@@ -9,6 +10,7 @@ interface TaskStore {
   approvedPositions: ApprovedPosition[];
   hasNoApprovedPositions: boolean;
   selectedTask: Task | null;
+  completedTaskIds: string[];
   isLoading: boolean;
   error: string | null;
 
@@ -16,6 +18,7 @@ interface TaskStore {
   fetchTasksWithPositions: (userId: string) => Promise<void>;
   fetchTaskById: (id: string) => Promise<void>;
   updateTaskStatus: (id: string, status: TaskStatus) => Promise<void>;
+  markTaskCompletedLocally: (taskId: string) => void;
   clearError: () => void;
 }
 
@@ -24,6 +27,7 @@ export const useTaskStore = create<TaskStore>((set) => ({
   approvedPositions: [],
   hasNoApprovedPositions: false,
   selectedTask: null,
+  completedTaskIds: [],
   isLoading: false,
   error: null,
 
@@ -60,7 +64,7 @@ export const useTaskStore = create<TaskStore>((set) => ({
       // If we need to merge from API:
       const allTasksPromises = positions.map(async p => {
         const pTasks = await taskService.getByPositionId(p.id);
-        // Hydrate just in case backend omits it
+      // Hydrate just in case backend omits it
         return pTasks.map(t => ({ ...t, internshipposition_id: p.id }));
       });
       const results = await Promise.all(allTasksPromises);
@@ -68,7 +72,18 @@ export const useTaskStore = create<TaskStore>((set) => ({
       const mergedTasks = results.flat();
       const uniqueTasks = Array.from(new Map(mergedTasks.map(t => [t.id, t])).values());
 
-      set({ tasks: uniqueTasks, isLoading: false });
+      // Fetch answered quizzes cross-reference for the intern
+      const [allQuizzes, userAnswers] = await Promise.all([
+        quizService.getAllQuizzes(),
+        quizService.getQuizAnswersByUser(userId)
+      ]);
+
+      const answeredQuizIds = new Set(userAnswers.map(a => a.quiz_id));
+      const completedTaskIds = allQuizzes
+        .filter(q => answeredQuizIds.has(q.id))
+        .map(q => q.task_id);
+
+      set({ tasks: uniqueTasks, completedTaskIds, isLoading: false });
     } catch (err: any) {
       set({ isLoading: false, error: err?.message || 'Failed to load positions and tasks' });
     }
@@ -94,6 +109,15 @@ export const useTaskStore = create<TaskStore>((set) => ({
     } catch (err: any) {
       set({ error: err?.message || 'Failed to update task' });
     }
+  },
+
+  markTaskCompletedLocally: (taskId: string) => {
+    set((state) => {
+      if (!state.completedTaskIds.includes(taskId)) {
+        return { completedTaskIds: [...state.completedTaskIds, taskId] };
+      }
+      return state;
+    });
   },
 
   clearError: () => set({ error: null }),

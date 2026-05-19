@@ -7,6 +7,7 @@ import { TaskCard } from '@/components/cards/TaskCard';
 import { EmptyState } from '@/components/common/EmptyState';
 import { LoadingSpinner } from '@/components/common/LoadingSpinner';
 import { useTasks } from '@/hooks/useTasks';
+import { useTaskStore } from '@/store/taskStore';
 import { Task } from '@/types/task.types';
 import { COLORS, FONTS, RADIUS, SPACING } from '@/constants/theme';
 import { Ionicons } from '@expo/vector-icons';
@@ -114,7 +115,10 @@ export default function TasksScreen() {
       <FlatList
         data={displayedTasks}
         keyExtractor={(item) => item.id}
-        renderItem={({ item }) => <TaskCard task={item} onPress={handlePress} />}
+        renderItem={({ item }) => {
+           const { completedTaskIds } = useTaskStore.getState();
+           return <TaskCard task={item} isCompleted={completedTaskIds.includes(item.id)} onPress={handlePress} />;
+        }}
         ListEmptyComponent={
           <EmptyState
             icon="checkmark-circle-outline"
