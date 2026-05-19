@@ -1,5 +1,5 @@
-import React, { useState } from 'react';
-import { FlatList, View, StyleSheet, ScrollView, TouchableOpacity, Text, TextInput } from 'react-native';
+import React, { useState, useCallback } from 'react';
+import { FlatList, View, StyleSheet, ScrollView, TouchableOpacity, Text, TextInput, RefreshControl } from 'react-native';
 import { useRouter } from 'expo-router';
 import { SafeLayout } from '@/components/layout/SafeLayout';
 import { ScreenHeader } from '@/components/common/ScreenHeader';
@@ -8,26 +8,36 @@ import { EmptyState } from '@/components/common/EmptyState';
 import { LoadingSpinner } from '@/components/common/LoadingSpinner';
 import { useTasks } from '@/hooks/useTasks';
 import { useTaskStore } from '@/store/taskStore';
+import { useAuthStore } from '@/store/authStore';
 import { Task } from '@/types/task.types';
 import { COLORS, FONTS, RADIUS, SPACING } from '@/constants/theme';
 import { Ionicons } from '@expo/vector-icons';
 
 export default function TasksScreen() {
-  const { tasks, isLoading, hasNoApprovedPositions, approvedPositions } = useTasks();
+  const { tasks, isLoading, hasNoApprovedPositions, approvedPositions, fetchTasksWithPositions } = useTasks();
+  const { user } = useAuthStore();
   const router = useRouter();
   const [activeFilter, setActiveFilter] = useState('All');
   const [showSearch, setShowSearch] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
+  const [refreshing, setRefreshing] = useState(false);
+
+  const handleRefresh = useCallback(async () => {
+    if (!user?.id) return;
+    setRefreshing(true);
+    await fetchTasksWithPositions(user.id);
+    setRefreshing(false);
+  }, [user?.id, fetchTasksWithPositions]);
 
   const handlePress = (task: Task) => {
-    router.push({ pathname: '/(app)/task-detail' as any, params: { id: task.id } });
+    router.push(`/(app)/task-detail?id=${task.id}` as any);
   };
 
   if (isLoading) return <LoadingSpinner fullScreen />;
 
   if (hasNoApprovedPositions) {
     return (
-      <SafeLayout scrollable={false}>
+      <SafeLayout scrollable={false} refreshing={refreshing} onRefresh={handleRefresh}>
         <ScreenHeader title="Tasks" 
           showSearch={false} 
           showBell 
@@ -128,6 +138,14 @@ export default function TasksScreen() {
         }
         showsVerticalScrollIndicator={false}
         contentContainerStyle={{ flexGrow: 1, padding: SPACING.md }}
+        refreshControl={
+          <RefreshControl
+            refreshing={refreshing}
+            onRefresh={handleRefresh}
+            colors={[COLORS.primary]}
+            tintColor={COLORS.primary}
+          />
+        }
       />
     </SafeLayout>
   );

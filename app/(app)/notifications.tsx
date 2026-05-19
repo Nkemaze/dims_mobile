@@ -1,5 +1,5 @@
-import React, { useEffect, useState } from 'react';
-import { SectionList, Text, StyleSheet } from 'react-native';
+import React, { useEffect, useState, useCallback } from 'react';
+import { SectionList, Text, StyleSheet, RefreshControl } from 'react-native';
 import { SafeLayout } from '@/components/layout/SafeLayout';
 import { ScreenHeader } from '@/components/common/ScreenHeader';
 import { NotificationCard } from '@/components/cards/NotificationCard';
@@ -13,10 +13,22 @@ import { isToday, isYesterday } from 'date-fns';
 export default function NotificationsScreen() {
   const [notifications, setNotifications] = useState<Notification[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [refreshing, setRefreshing] = useState(false);
+
+  const loadNotifications = useCallback(async () => {
+    const data = await notificationService.getAll();
+    setNotifications(data);
+  }, []);
 
   useEffect(() => {
-    notificationService.getAll().then(setNotifications).finally(() => setIsLoading(false));
-  }, []);
+    loadNotifications().finally(() => setIsLoading(false));
+  }, [loadNotifications]);
+
+  const handleRefresh = useCallback(async () => {
+    setRefreshing(true);
+    await loadNotifications();
+    setRefreshing(false);
+  }, [loadNotifications]);
 
   const handlePress = async (notification: Notification) => {
     if (!notification.isRead) {
@@ -63,6 +75,14 @@ export default function NotificationsScreen() {
         }
         showsVerticalScrollIndicator={false}
         contentContainerStyle={{ flexGrow: 1, padding: SPACING.md }}
+        refreshControl={
+          <RefreshControl
+            refreshing={refreshing}
+            onRefresh={handleRefresh}
+            colors={[COLORS.primary]}
+            tintColor={COLORS.primary}
+          />
+        }
       />
     </SafeLayout>
   );

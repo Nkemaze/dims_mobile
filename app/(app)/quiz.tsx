@@ -11,9 +11,10 @@ import { Question, QuizSubmission } from '@/types/quiz.types';
 import { TaskStatus } from '@/types/task.types';
 
 export default function QuizTakingScreen() {
-  const { id: quizId } = useLocalSearchParams<{ id: string }>();
+  const { id: quizId, taskId } = useLocalSearchParams<{ id: string; taskId: string }>();
   const router = useRouter();
   const { user } = useAuthStore();
+  const safeTaskId = Array.isArray(taskId) ? taskId?.[0] : taskId;
 
   const [questions, setQuestions] = useState<Question[]>([]);
   const [isLoading, setIsLoading] = useState<boolean>(true);
@@ -87,7 +88,7 @@ export default function QuizTakingScreen() {
               "Submission Successful",
               "Your quiz has been submitted successfully!",
               "success",
-              () => { closeAlert(); router.push('/(app)/tasks'); }
+              () => { closeAlert(); router.replace('/(app)/tasks' as any); }
             );
           }, 300);
         } catch (error) {
@@ -160,7 +161,7 @@ export default function QuizTakingScreen() {
 
   return (
     <SafeLayout scrollable={false}>
-      <ScreenHeader title="Quiz: Section 1" showBack />
+      <ScreenHeader title="Quiz: Section 1" showBack onBackPress={() => router.push(`/(app)/quizzes?id=${safeTaskId}` as any)} />
       
       {isLoading ? (
         <View style={styles.centerBox}>

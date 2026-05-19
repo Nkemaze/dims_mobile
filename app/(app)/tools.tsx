@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useCallback } from 'react';
 import { View, Text, StyleSheet,TextInput } from 'react-native';
 import { SafeLayout } from '@/components/layout/SafeLayout';
 import { ScreenHeader } from '@/components/common/ScreenHeader';
@@ -8,8 +8,17 @@ import { COLORS, FONTS, SPACING, RADIUS } from '@/constants/theme';
 export default function ToolsScreen() {
   const [showSearch, setShowSearch] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
+  const [refreshing, setRefreshing] = useState(false);
+
+  const handleRefresh = useCallback(async () => {
+    setRefreshing(true);
+    // Tools has no remote data yet — just a brief visual confirmation
+    await new Promise(resolve => setTimeout(resolve, 600));
+    setRefreshing(false);
+  }, []);
+
   return (
-    <SafeLayout>
+    <SafeLayout refreshing={refreshing} onRefresh={handleRefresh}>
       <ScreenHeader title="Tools" 
         showBell 
         showSearch 

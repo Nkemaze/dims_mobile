@@ -11,6 +11,7 @@ import { Quiz } from '@/types/quiz.types';
 export default function QuizzesScreen() {
   const { id: taskId } = useLocalSearchParams<{ id: string }>();
   const router = useRouter();
+  const safeTaskId = Array.isArray(taskId) ? taskId?.[0] : taskId;
 
   const [quizzes, setQuizzes] = useState<Quiz[]>([]);
   const [isLoading, setIsLoading] = useState<boolean>(true);
@@ -38,7 +39,7 @@ export default function QuizzesScreen() {
   }, [taskId]);
 
   const handleStartQuiz = (quizId: string) => {
-    router.push(`/(app)/quiz?id=${quizId}` as any);
+    router.push(`/(app)/quiz?id=${quizId}&taskId=${safeTaskId}` as any);
   };
 
   const renderQuizItem = ({ item }: { item: Quiz }) => (
@@ -67,7 +68,7 @@ export default function QuizzesScreen() {
 
   return (
     <SafeLayout scrollable={false}>
-      <ScreenHeader title="Quiz" showBack />
+      <ScreenHeader title="Quiz" showBack onBackPress={() => router.push(`/(app)/task-detail?id=${safeTaskId}` as any)} />
       
       <View style={styles.container}>
         {isLoading ? (

@@ -15,6 +15,8 @@ export default function AppLayout() {
       {/* Hidden from tab bar */}
       <Tabs.Screen name="notifications" options={{ href: null }} />
       <Tabs.Screen name="task-detail" options={{ href: null }} />
+      <Tabs.Screen name="quizzes" options={{ href: null }} />
+      <Tabs.Screen name="quiz" options={{ href: null }} />
       <Tabs.Screen name="attendance" options={{ href: null }} />
       <Tabs.Screen name="timetable" options={{ href: null }} />
       <Tabs.Screen name="progress" options={{ href: null }} />

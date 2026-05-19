@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useCallback } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, Image, Linking, Modal, TextInput } from 'react-native';
 import { SafeLayout } from '@/components/layout/SafeLayout';
 import { ScreenHeader } from '@/components/common/ScreenHeader';
@@ -12,13 +12,20 @@ import { formatShortDate } from '@/utils/formatters';
 
 export default function ProfileScreen() {
 
-  const { user, intern, logout } = useAuthStore();
+  const { user, intern, logout, ensureIntern } = useAuthStore();
 
   const router = useRouter();
 
   const [deleteStep, setDeleteStep] = useState(0);
   const [generatedCode, setGeneratedCode] = useState('');
   const [enteredCode, setEnteredCode] = useState('');
+  const [refreshing, setRefreshing] = useState(false);
+
+  const handleRefresh = useCallback(async () => {
+    setRefreshing(true);
+    await ensureIntern();
+    setRefreshing(false);
+  }, [ensureIntern]);
 
   const handleSignOut = () => {
     router.replace('/(auth)/login' as any);
@@ -49,7 +56,7 @@ export default function ProfileScreen() {
   console.log(intern)
 
   return (
-    <SafeLayout>
+    <SafeLayout refreshing={refreshing} onRefresh={handleRefresh}>
       <ScreenHeader title="Profile" />
 
       <View style={styles.profileHeader}>
