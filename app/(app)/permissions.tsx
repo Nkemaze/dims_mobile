@@ -184,6 +184,7 @@ const styles = StyleSheet.create({
   },
   card: {
     padding: SPACING.md,
+    margin: SPACING.md,
   },
   cardHeader: {
     flexDirection: 'row',
