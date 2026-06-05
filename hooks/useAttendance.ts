@@ -1,5 +1,5 @@
-import { useEffect } from 'react';
 import { useAttendanceStore } from '@/store/attendanceStore';
+import { useEffect } from 'react';
 
 export const useAttendance = () => {
   const records = useAttendanceStore((s) => s.records);

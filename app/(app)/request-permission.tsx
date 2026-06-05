@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { View, StyleSheet, ScrollView, Platform, TouchableOpacity, Text } from 'react-native';
+import { View, StyleSheet, ScrollView, Platform, TouchableOpacity, Text, Alert } from 'react-native';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import { SafeLayout } from '@/components/layout/SafeLayout';
 import { ScreenHeader } from '@/components/common/ScreenHeader';
@@ -7,42 +7,69 @@ import { AppInput } from '@/components/common/AppInput';
 import { AppButton } from '@/components/common/AppButton';
 import { COLORS, SPACING, FONTS } from '@/constants/theme';
 import { useRouter } from 'expo-router';
+import { useAuthStore } from '@/store/authStore';
+import { usePermissionStore } from '@/store/permissionStore';
 
 export default function RequestPermissionScreen() {
   const router = useRouter();
+  const { intern } = useAuthStore();
+  const { createPermission, isSubmitting } = usePermissionStore();
+
   const [reason, setReason] = useState('');
   const [fromDate, setFromDate] = useState<Date | null>(null);
   const [toDate, setToDate] = useState<Date | null>(null);
   const [showFromPicker, setShowFromPicker] = useState(false);
   const [showToPicker, setShowToPicker] = useState(false);
-  const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const handleSubmit = () => {
-    setIsSubmitting(true);
-    setTimeout(() => {
-      setIsSubmitting(false);
-      router.back();
-    }, 1500);
+  const handleSubmit = async () => {
+    if (!reason.trim()) {
+      Alert.alert('Validation', 'Please enter a reason for your leave.');
+      return;
+    }
+    if (!fromDate) {
+      Alert.alert('Validation', 'Please select a start date.');
+      return;
+    }
+    if (!intern?.id) {
+      Alert.alert('Error', 'Intern data not loaded. Please try again.');
+      return;
+    }
+
+    const success = await createPermission({
+      intern_id: intern.id,
+      reason: reason.trim(),
+      start_date: fromDate.toISOString(),
+      end_date: toDate ? toDate.toISOString() : null,
+    });
+
+    if (success) {
+      Alert.alert('Success', 'Permission request submitted successfully!', [
+        { text: 'OK', onPress: () => router.back() },
+      ]);
+    } else {
+      Alert.alert('Error', 'Failed to submit request. Please try again.');
+    }
   };
 
   return (
     <SafeLayout>
       <ScreenHeader title="Request Leave" showBack />
-      
+
       <ScrollView contentContainerStyle={styles.content}>
-        <AppInput 
-          label="Reason for leave" 
-          placeholder="Briefly explain your reason..." 
+        <AppInput
+          label="Reason for leave"
+          placeholder="Briefly explain your reason..."
           value={reason}
           onChangeText={setReason}
         />
 
+        {/* Start Date */}
         <TouchableOpacity onPress={() => setShowFromPicker(true)} activeOpacity={0.8}>
           <View pointerEvents="none">
-            <AppInput 
-              label="Start Date" 
-              placeholder="DD/MM/YYYY" 
-              value={fromDate ? fromDate.toLocaleDateString() : ''}
+            <AppInput
+              label="Start Date"
+              placeholder="Tap to select..."
+              value={fromDate ? fromDate.toLocaleString() : ''}
               editable={false}
             />
           </View>
@@ -60,19 +87,20 @@ export default function RequestPermissionScreen() {
           />
         )}
 
+        {/* End Date */}
         <TouchableOpacity onPress={() => setShowToPicker(true)} activeOpacity={0.8}>
           <View pointerEvents="none">
-            <AppInput 
-              label="End Date" 
-              placeholder="DD/MM/YYYY" 
-              value={toDate ? toDate.toLocaleDateString() : ''}
+            <AppInput
+              label="End Date (optional)"
+              placeholder="Tap to select..."
+              value={toDate ? toDate.toLocaleString() : ''}
               editable={false}
             />
           </View>
         </TouchableOpacity>
         {showToPicker && (
           <DateTimePicker
-            value={toDate || new Date()}
+            value={toDate || fromDate || new Date()}
             mode="date"
             display={Platform.OS === 'ios' ? 'spinner' : 'default'}
             onChange={(e, date) => {
@@ -83,11 +111,11 @@ export default function RequestPermissionScreen() {
           />
         )}
 
-        <AppButton 
-          title="Submit Request" 
-          onPress={handleSubmit} 
-          isLoading={isSubmitting} 
-          style={styles.submitBtn} 
+        <AppButton
+          title="Submit Request"
+          onPress={handleSubmit}
+          isLoading={isSubmitting}
+          style={styles.submitBtn}
         />
       </ScrollView>
     </SafeLayout>
@@ -101,5 +129,6 @@ const styles = StyleSheet.create({
   },
   submitBtn: {
     marginTop: SPACING.lg,
-  }
+    backgroundColor: COLORS.primary,
+  },
 });

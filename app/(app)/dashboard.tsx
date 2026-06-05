@@ -15,25 +15,24 @@ import { format } from 'date-fns';
 export default function DashboardScreen() {
   const router = useRouter();
   const { intern, user, ensureIntern } = useAuthStore();
-  const { tasks, fetchTasks, isLoading: tasksLoading } = useTaskStore();
+  const { tasks, completedTaskIds, fetchTasksWithPositions, isLoading: tasksLoading } = useTaskStore();
   const { records, fetchAttendance, isLoading: attendanceLoading } = useAttendanceStore();
   const { entries, fetchTimetable } = useTimetableStore();
   const [refreshing, setRefreshing] = useState(false);
 
   const loadData = useCallback(async () => {
-    if (intern?.id) {
-      // Always fetch all three in parallel.
-      // fetchTasks accepts an optional positionId — when present it filters by position,
-      // when absent (intern has no position yet) it returns all tasks, same as the tasks screen.
+    if (intern?.id && user?.id) {
+      // Use fetchTasksWithPositions so completedTaskIds (quiz-based completion) is populated,
+      // matching exactly what the Tasks screen uses.
       await Promise.all([
         fetchAttendance(intern.id),
         fetchTimetable(),
-        fetchTasks(intern.internshipposition_id),
+        fetchTasksWithPositions(user.id),
       ]);
     } else {
       await fetchTimetable();
     }
-  }, [intern?.id, intern?.internshipposition_id, fetchAttendance, fetchTasks, fetchTimetable]);
+  }, [intern?.id, user?.id, fetchAttendance, fetchTasksWithPositions, fetchTimetable]);
 
   useEffect(() => {
     loadData();
@@ -56,7 +55,9 @@ export default function DashboardScreen() {
   };
 
   const daysPresent = records.filter(r => r.status === 'PRESENT').length;
-  const tasksDone = tasks.filter(t => t.status === 'COMPLETED').length;
+  // Task completion is quiz-based: a task is "done" when the intern has answered its quiz.
+  // completedTaskIds is populated by fetchTasksWithPositions via cross-referencing quiz answers.
+  const tasksDone = completedTaskIds.length;
   const currentTask = tasks.find(t => t.status === 'IN_PROGRESS') || tasks[0];
 
   const today = format(new Date(), 'EEEE').toUpperCase();

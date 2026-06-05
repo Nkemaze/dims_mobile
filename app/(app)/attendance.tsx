@@ -1,14 +1,14 @@
-import React, { useState } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
-import { SafeLayout } from '@/components/layout/SafeLayout';
-import { ScreenHeader } from '@/components/common/ScreenHeader';
 import { AppCard } from '@/components/common/AppCard';
 import { LoadingSpinner } from '@/components/common/LoadingSpinner';
-import { useAttendance } from '@/hooks/useAttendance';
+import { ScreenHeader } from '@/components/common/ScreenHeader';
+import { SafeLayout } from '@/components/layout/SafeLayout';
 import { COLORS, RADIUS, SPACING } from '@/constants/theme';
+import { useAttendance } from '@/hooks/useAttendance';
 import { Ionicons } from '@expo/vector-icons';
-import { format, startOfMonth, endOfMonth, eachDayOfInterval, isSameDay, addMonths, subMonths } from 'date-fns';
+import { addMonths, eachDayOfInterval, endOfMonth, format, isSameDay, startOfMonth, subMonths } from 'date-fns';
 import { useRouter } from 'expo-router';
+import React, { useState } from 'react';
+import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 
 export default function AttendanceScreen() {
   const router = useRouter();
@@ -67,25 +67,25 @@ export default function AttendanceScreen() {
         </View>
 
         <View style={styles.calendar}>
-           <View style={styles.grid}>
-             {days.map((day, index) => (
-               <View
-                 key={index}
-                 style={[
-                   styles.dayBox,
-                   { backgroundColor: getStatusColor(day) },
-                   isSameDay(day, new Date()) && styles.today
-                 ]}
-               >
-                 <Text style={[
-                   styles.dayText,
-                   getStatusColor(day) !== '#f8f9fa' ? { color: COLORS.white } : { color: COLORS.textPrimary }
-                 ]}>
-                   {format(day, 'd')}
-                 </Text>
-               </View>
-             ))}
-           </View>
+          <View style={styles.grid}>
+            {days.map((day, index) => (
+              <View
+                key={index}
+                style={[
+                  styles.dayBox,
+                  { backgroundColor: getStatusColor(day) },
+                  isSameDay(day, new Date()) && styles.today
+                ]}
+              >
+                <Text style={[
+                  styles.dayText,
+                  getStatusColor(day) !== '#f8f9fa' ? { color: COLORS.white } : { color: COLORS.textPrimary }
+                ]}>
+                  {format(day, 'd')}
+                </Text>
+              </View>
+            ))}
+          </View>
         </View>
       </View>
     </SafeLayout>
