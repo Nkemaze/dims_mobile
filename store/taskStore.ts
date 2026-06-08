@@ -4,6 +4,17 @@ import { taskService } from '@/services/taskService';
 import { internshipService } from '@/services/internshipService';
 import { quizService } from '@/services/quizService';
 import { ApprovedPosition } from '@/types/internship.types';
+import { cache } from '@/utils/storage';
+
+const CACHE_TASKS = 'tasks';
+const CACHE_POSITIONS = 'approved_positions';
+const CACHE_COMPLETED_IDS = 'completed_task_ids';
+
+interface CachedTaskData {
+  tasks: Task[];
+  approvedPositions: ApprovedPosition[];
+  completedTaskIds: string[];
+}
 
 interface TaskStore {
   tasks: Task[];
@@ -42,49 +53,74 @@ export const useTaskStore = create<TaskStore>((set) => ({
   },
 
   fetchTasksWithPositions: async (userId: string) => {
-    set({ isLoading: true, error: null, hasNoApprovedPositions: false });
+    // ── 1. Load from cache immediately for offline-first experience ──────────
+    const cachedTasks       = await cache.get<Task[]>(CACHE_TASKS) ?? [];
+    const cachedPositions   = await cache.get<ApprovedPosition[]>(CACHE_POSITIONS) ?? [];
+    const cachedCompleted   = await cache.get<string[]>(CACHE_COMPLETED_IDS) ?? [];
+
+    if (cachedTasks.length > 0) {
+      set({
+        tasks: cachedTasks,
+        approvedPositions: cachedPositions,
+        completedTaskIds: cachedCompleted,
+        hasNoApprovedPositions: false,
+      });
+    }
+
+    // ── 2. Fetch fresh from network ──────────────────────────────────────────
+    const hasCachedData = cachedTasks.length > 0;
+    set({ isLoading: !hasCachedData, error: null, hasNoApprovedPositions: false });
+
     try {
       const positions = await internshipService.getApprovedInternshipPositions(userId);
-      
+
       if (positions.length === 0) {
-        set({ 
-          approvedPositions: [], 
-          hasNoApprovedPositions: true, 
-          tasks: [], 
-          isLoading: false 
+        set({
+          approvedPositions: [],
+          hasNoApprovedPositions: true,
+          tasks: [],
+          isLoading: false,
         });
+        // Clear stale task caches if user no longer has a position
+        await Promise.all([
+          cache.clear(CACHE_TASKS),
+          cache.clear(CACHE_POSITIONS),
+          cache.clear(CACHE_COMPLETED_IDS),
+        ]);
         return;
       }
 
       set({ approvedPositions: positions });
-      
-      // We can fetch tasks for all positions or default to the first one, or no filter. 
-      // Depending on the API, if we don't pass one, does it bring all? We can just fetch them individually or use the first position.
-      // Easiest is to fetch tasks based on multiple, but since the endpoint takes a single positionId, we can either call it for all, or not yet for all.
-      // If we need to merge from API:
-      const allTasksPromises = positions.map(async p => {
+
+      const allTasksPromises = positions.map(async (p) => {
         const pTasks = await taskService.getByPositionId(p.id);
-      // Hydrate just in case backend omits it
-        return pTasks.map(t => ({ ...t, internshipposition_id: p.id }));
+        return pTasks.map((t) => ({ ...t, internshipposition_id: p.id }));
       });
       const results = await Promise.all(allTasksPromises);
-      // Flatten the results and de-duplicate by ID in case any tasks overlap
       const mergedTasks = results.flat();
-      const uniqueTasks = Array.from(new Map(mergedTasks.map(t => [t.id, t])).values());
+      const uniqueTasks = Array.from(new Map(mergedTasks.map((t) => [t.id, t])).values());
 
-      // Fetch answered quizzes cross-reference for the intern
+      // Cross-reference quiz answers for completion
       const [allQuizzes, userAnswers] = await Promise.all([
         quizService.getAllQuizzes(),
-        quizService.getQuizAnswersByUser(userId)
+        quizService.getQuizAnswersByUser(userId),
       ]);
 
-      const answeredQuizIds = new Set(userAnswers.map(a => a.quiz_id));
+      const answeredQuizIds = new Set(userAnswers.map((a) => a.quiz_id));
       const completedTaskIds = allQuizzes
-        .filter(q => answeredQuizIds.has(q.id))
-        .map(q => q.task_id);
+        .filter((q) => answeredQuizIds.has(q.id))
+        .map((q) => q.task_id);
 
       set({ tasks: uniqueTasks, completedTaskIds, isLoading: false });
+
+      // ── 3. Persist for offline use ─────────────────────────────────────────
+      await Promise.all([
+        cache.set(CACHE_TASKS, uniqueTasks),
+        cache.set(CACHE_POSITIONS, positions),
+        cache.set(CACHE_COMPLETED_IDS, completedTaskIds),
+      ]);
     } catch (err: any) {
+      // Network failed — keep showing cached data, clear the loading indicator
       set({ isLoading: false, error: err?.message || 'Failed to load positions and tasks' });
     }
   },

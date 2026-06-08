@@ -1,15 +1,18 @@
-export type AttendanceStatus = 'PRESENT' | 'ABSENT' | 'LATE' | 'EXCUSED';
+// Real API status values from the backend
+export type AttendanceStatus = 'Present' | 'Absent' | 'Other';
 
+// Matches the actual API response shape from /attendances
 export interface AttendanceRecord {
   id: string;
-  internId: string;
-  date: string;
-  checkIn?: string;
-  checkOut?: string;
+  intern_id: string;
+  attendance_date: string; // ISO date string e.g. "2025-06-01T00:00:00.000Z"
   status: AttendanceStatus;
+  created_at?: string;
+  updated_at?: string;
 }
 
 export interface MarkAttendancePayload {
-  date: string;
-  checkIn: string;
+  intern_id: string;
+  attendance_date: string;
+  status: AttendanceStatus;
 }

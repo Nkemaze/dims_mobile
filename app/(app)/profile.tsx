@@ -12,7 +12,7 @@ import { formatShortDate } from '@/utils/formatters';
 
 export default function ProfileScreen() {
 
-  const { user, intern, logout, ensureIntern } = useAuthStore();
+  const { user, intern, logout, refreshProfile } = useAuthStore();
 
   const router = useRouter();
 
@@ -23,9 +23,9 @@ export default function ProfileScreen() {
 
   const handleRefresh = useCallback(async () => {
     setRefreshing(true);
-    await ensureIntern();
+    await refreshProfile();
     setRefreshing(false);
-  }, [ensureIntern]);
+  }, [refreshProfile]);
 
   const handleSignOut = () => {
     router.replace('/(auth)/login' as any);
@@ -49,14 +49,14 @@ export default function ProfileScreen() {
     { title: 'Track your attendance', icon: 'calendar', color: COLORS.primary, route: '/(app)/attendance' },
     { title: 'Timetable management', icon: 'time', color: COLORS.primary, route: '/(app)/timetable' },
     { title: 'Permission Management', icon: 'document-text', color: COLORS.primary, route: '/(app)/permissions' },
-    { title: 'Manage Your Payments', icon: 'card', color: COLORS.primary, route: '/(app)/payment' },
+    // { title: 'Manage Your Payments', icon: 'card', color: COLORS.primary, route: '/(app)/payment' },
     { title: 'About Us', icon: 'information-circle', color: COLORS.primary, url: 'https://www.digimarkconsulting.cm' },
   ];
 
   console.log(intern)
 
   return (
-    <SafeLayout refreshing={refreshing} onRefresh={handleRefresh}>
+    <SafeLayout refreshing={refreshing} onRefresh={handleRefresh} contentStyle={{ padding: 0 }}>
       <ScreenHeader title="Profile" />
 
       <View style={styles.profileHeader}>

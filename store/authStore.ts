@@ -2,7 +2,7 @@ import { create } from 'zustand';
 import { User, Intern } from '@/types/auth.types';
 import { authService } from '@/services/authService';
 import { profileService } from '@/services/profileService';
-import { storage } from '@/utils/storage';
+import { storage, cache } from '@/utils/storage';
 
 interface AuthStore {
   user: User | null;
@@ -17,6 +17,7 @@ interface AuthStore {
   logout: () => Promise<void>;
   loadSession: () => Promise<void>;
   ensureIntern: () => Promise<void>;
+  refreshProfile: () => Promise<void>;
   clearError: () => void;
   forgotPassword: (email: string) => Promise<{ success: boolean; message: string }>;
   resetPassword: (token: string, password: string) => Promise<{ success: boolean; message: string }>;
@@ -96,7 +97,8 @@ export const useAuthStore = create<AuthStore>((set, get) => ({
     } catch (error) {
       console.error('Logout error:', error);
     } finally {
-      await storage.clearAll();
+      // Clear auth storage AND all offline-cached data
+      await Promise.all([storage.clearAll(), cache.clearAll()]);
       set({ user: null, intern: null, token: null, isAuthenticated: false, isVerified: true });
     }
   },
@@ -135,6 +137,32 @@ export const useAuthStore = create<AuthStore>((set, get) => ({
       }
     } catch (e) {
       console.warn('[authStore] ensureIntern failed:', e);
+    }
+  },
+
+  /**
+   * Force-refreshes both user and intern profiles from the API.
+   * Unlike ensureIntern, this always re-fetches even if data is already present.
+   * Use this for pull-to-refresh on profile-related screens.
+   */
+  refreshProfile: async () => {
+    const { user } = get();
+    if (!user) return;
+    try {
+      const [freshUser, freshIntern] = await Promise.all([
+        profileService.getUserById(user.id),
+        profileService.getInternByUserId(user.id),
+      ]);
+      if (freshUser) {
+        await storage.saveUser(freshUser);
+        set({ user: freshUser });
+      }
+      if (freshIntern) {
+        await storage.saveIntern(freshIntern);
+        set({ intern: freshIntern });
+      }
+    } catch (e) {
+      console.warn('[authStore] refreshProfile failed:', e);
     }
   },
 

@@ -1,4 +1,5 @@
 import React, { useEffect, useState, useCallback } from 'react';
+import { useFocusEffect } from 'expo-router';
 import { View, Text, StyleSheet, TouchableOpacity, ActivityIndicator } from 'react-native';
 import { SafeLayout } from '@/components/layout/SafeLayout';
 import { ScreenHeader } from '@/components/common/ScreenHeader';
@@ -21,22 +22,24 @@ export default function DashboardScreen() {
   const [refreshing, setRefreshing] = useState(false);
 
   const loadData = useCallback(async () => {
-    if (intern?.id && user?.id) {
-      // Use fetchTasksWithPositions so completedTaskIds (quiz-based completion) is populated,
-      // matching exactly what the Tasks screen uses.
+    if (user?.id) {
       await Promise.all([
-        fetchAttendance(intern.id),
+        fetchAttendance(),
         fetchTimetable(),
         fetchTasksWithPositions(user.id),
       ]);
     } else {
       await fetchTimetable();
     }
-  }, [intern?.id, user?.id, fetchAttendance, fetchTasksWithPositions, fetchTimetable]);
+  }, [user?.id, fetchAttendance, fetchTasksWithPositions, fetchTimetable]);
 
-  useEffect(() => {
-    loadData();
-  }, [loadData]);
+  // Re-fetch all data every time the screen comes into focus so
+  // attendance count, tasks, and schedule are always up-to-date.
+  useFocusEffect(
+    useCallback(() => {
+      loadData();
+    }, [loadData])
+  );
 
   // If intern wasn't fetched during login (network hiccup etc.), retry here.
   // Once intern lands in the store, loadData rebuild triggers the data fetch automatically.
@@ -54,14 +57,17 @@ export default function DashboardScreen() {
     setRefreshing(false);
   };
 
-  const daysPresent = records.filter(r => r.status === 'PRESENT').length;
+  const daysPresent = records.filter(r => r.status === 'Present').length;
   // Task completion is quiz-based: a task is "done" when the intern has answered its quiz.
   // completedTaskIds is populated by fetchTasksWithPositions via cross-referencing quiz answers.
   const tasksDone = completedTaskIds.length;
   const currentTask = tasks.find(t => t.status === 'IN_PROGRESS') || tasks[0];
 
-  const today = format(new Date(), 'EEEE').toUpperCase();
-  const todaysSchedule = entries.filter(e => e.dayOfWeek === today);
+  const todayDateStr = format(new Date(), 'yyyy-MM-dd');
+  const todayDayOfWeek = format(new Date(), 'EEEE').toUpperCase();
+  const todaysSchedule = entries.filter(e => 
+    e.activityDate ? e.activityDate === todayDateStr : e.dayOfWeek === todayDayOfWeek
+  );
   // console.log(user?.id)
   // console.log(intern)
 
